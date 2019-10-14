@@ -9,8 +9,8 @@ public class PC_Input : GameInput {
 
     public override Vector2 GetMoveDir() {
         hl = Input.GetAxis("Horizontal");
-		vt = 0;
-        moveDir = new Vector2(hl, vt).normalized;
+		vt = Input.GetAxis("Vertical");
+        moveDir = new Vector2(hl, vt);
         return moveDir;
     }
     public override float GetJumpInteraction() {

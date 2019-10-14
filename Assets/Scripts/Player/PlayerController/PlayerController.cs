@@ -6,12 +6,25 @@ public class PlayerController : MonoBehaviour {
     [Header("Move")]
     public float MoveSpeed;
     public float JumpForce;
+    [Header("Throw Cube")]
+    public GameObject CubePrefab;
+    public Transform ThrowPos;
+    public float ThrowForce;
+    [Range(0, 150)]
+    public float CD_Time = 0;
+    
+
     // move
     private Vector2 moveDir;
+    private bool faceRight;
     // jump
     // private float jumpInteract;
     private bool allowJump;
-    private float distance_toGround = 0.65f;
+    private float distance_toGround = 0.7f;
+    // Throw Cube
+    private bool allowThrow = true;
+    private GameObject currentCube;
+    // Component
     private Rigidbody2D _rigidbody;
     private Transform _transform;
 
@@ -22,11 +35,21 @@ public class PlayerController : MonoBehaviour {
     private void Update() {
         this.GetMoveDir();
         this.Move();
-        Jump();
+        this.Jump();
+        this.ThrowCube();
+        this.Flash();
+    }
+    private void FixedUpdate() {
+        this.CubeTimer();
     }
 
     private void GetMoveDir() {
         moveDir = Game_Input.GetMoveDir();
+        if (moveDir.x > 0)
+            faceRight = true;
+        if (moveDir.x < 0)
+            faceRight = false;
+        // Debug.Log(moveDir);
     }
     private void Move() {
         // _rigidbody.AddForce(moveDir * MoveSpeed * Time.deltaTime, ForceMode2D.Force);
@@ -46,6 +69,42 @@ public class PlayerController : MonoBehaviour {
     private void OnGround() {
         allowJump = Physics2D.Raycast(transform.position, Vector2.down, distance_toGround, 1 << LayerMask.NameToLayer("Ground"));
     }
+    private void ThrowCube() {
+        if (Input.GetKeyDown(KeyCode.K) && allowThrow) {
+            currentCube = Instantiate(CubePrefab, ThrowPos.position, Quaternion.identity);
+            currentCube.GetComponent<Cube>().Player = gameObject;
+            Rigidbody2D cube_rigidbody = currentCube.GetComponent<Rigidbody2D>();
+            if (cube_rigidbody != null) {
+                if (moveDir != Vector2.zero)
+                    cube_rigidbody.AddForce(moveDir * ThrowForce, ForceMode2D.Impulse);
+                else if (faceRight)
+                    cube_rigidbody.AddForce(Vector2.right * ThrowForce, ForceMode2D.Impulse);
+                else
+                    cube_rigidbody.AddForce(Vector2.left * ThrowForce, ForceMode2D.Impulse);
+            }
+            CD_Time = 0;
+            allowThrow = false;
+        }
+
+    }
+    private void CubeTimer() {
+        if (CD_Time < 150)
+            CD_Time++;
+        if (CD_Time == 150)
+            allowThrow = true;
+        else
+            allowThrow = false;
+    }
+    private void Flash() {
+        if (!allowThrow && currentCube != null && CD_Time > 10) {
+            if (Input.GetKeyDown(KeyCode.K)) {
+                gameObject.transform.position = currentCube.transform.position;
+                Destroy(currentCube);
+                Debug.Log("Flash!");
+            }
+        }
+    }
+    
 
     private void OnDrawGizmosSelected() {
         Gizmos.color = new Color(1, 0, 0);
