@@ -156,7 +156,7 @@ Rigidbody2D:
   m_Mass: 1
   m_LinearDrag: 0
   m_AngularDrag: 0.05
-  m_GravityScale: 1
+  m_GravityScale: 2
   m_Material: {fileID: 6200000, guid: b093c6311c8011d44933c8e2eac68928, type: 2}
   m_Interpolate: 0
   m_SleepingMode: 1
@@ -277,6 +277,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Game_Input: {fileID: 179348990}
   MoveSpeed: 5
+  JumpForce: 10
 --- !u!1 &470494931
 GameObject:
   m_ObjectHideFlags: 0
@@ -288,7 +289,7 @@ GameObject:
   - component: {fileID: 470494932}
   - component: {fileID: 470494934}
   - component: {fileID: 470494933}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Ground
   m_TagString: Untagged
   m_Icon: {fileID: 0}
