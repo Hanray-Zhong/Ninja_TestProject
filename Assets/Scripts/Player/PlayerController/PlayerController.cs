@@ -13,6 +13,7 @@ public class PlayerController : MonoBehaviour {
     public GameObject CubePrefab;
     public Transform ThrowPos;
     public float ThrowForce;
+    public GameObject Arrow;
     [Range(0, 150)]
     public float CD_Time = 0;
     [Range(0, 150)]
@@ -97,7 +98,8 @@ public class PlayerController : MonoBehaviour {
             Time.timeScale = 0.1f;
             Time.fixedDeltaTime = 0.02f * Time.timeScale;
             Bullet_Time++;
-            Debug.Log(Game_Input.GetThrowInteraction());
+            Arrow.SetActive(true);
+            Arrow.transform.up = moveDir;
         }
         if ((Game_Input.GetThrowInteraction() - lastGetThrowInteraction < 0 || Bullet_Time >= 150) && allowThrow) {
             currentCube = Instantiate(CubePrefab, ThrowPos.position, Quaternion.identity);
@@ -114,6 +116,7 @@ public class PlayerController : MonoBehaviour {
             CD_Time = 0;
             allowThrow = false;
             Bullet_Time = 0;
+            Arrow.SetActive(false);
             Time.timeScale = 1;
             Time.fixedDeltaTime = 0.02f * Time.timeScale;
         }
