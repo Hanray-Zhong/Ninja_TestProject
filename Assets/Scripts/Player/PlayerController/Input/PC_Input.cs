@@ -22,9 +22,6 @@ public class PC_Input : GameInput {
     }
     public override float GetThrowInteraction() {
         throw_interact = Input.GetAxis("Throw");
-        if (throw_interact > 0) {
-            Debug.Log("Get Throw.");
-        }
         return throw_interact;
     }
 }

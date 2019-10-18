@@ -1,27 +1,55 @@
 using UnityEngine;
+using System.Collections;
 
 public class Cube : MonoBehaviour {
     public float ActiveTime;
+    public float rotateSpeed;
     public GameObject Player;
+    public bool HitEnemy = false;
+    public float timeScale;
 
     // private PlayerController controller;
+    private Rigidbody2D cube_rigidbody;
 
-    // private void Awake() {
-    //     controller = Player.GetComponent<PlayerController>();
-    // }
+    private void Awake() {
+        // controller = Player.GetComponent<PlayerController>();
+        cube_rigidbody = gameObject.GetComponent<Rigidbody2D>();
+    }
 
     private void Update() {
-        Destroy(gameObject, ActiveTime);
+        transform.Rotate(Vector3.forward * rotateSpeed * Time.deltaTime, Space.World);
+        StartCoroutine(Disappear());
     }
     private void OnTriggerEnter2D(Collider2D other) {
         if (other.tag == "Ground") {
-            Destroy(gameObject);
+            cube_rigidbody.velocity = Vector2.zero;
+            Destroy(gameObject, 1);
         }
+    }
+    private void OnTriggerStay2D(Collider2D other) {
         if (other.tag == "Enemy") {
-            Destroy(other.gameObject);
-            Player.transform.position = gameObject.transform.position;
-            Player.GetComponent<PlayerController>().CD_Time = 150;
-            Destroy(gameObject);
+            HitEnemy = true;
+            Time.timeScale = timeScale;
+            Time.fixedDeltaTime = 0.02f * Time.timeScale;
+            if (Input.GetKeyDown(KeyCode.K)) {
+                Destroy(other.gameObject);
+                Player.transform.position = gameObject.transform.position;
+                PlayerController playerController = Player.GetComponent<PlayerController>();
+                playerController.CD_Time = 150;
+                playerController.allowJump = true;
+                Destroy(gameObject);
+            }
         }
+    }
+    private void OnTriggerExit2D(Collider2D other) {
+        HitEnemy = false;
+        Time.timeScale = 1;
+        Time.fixedDeltaTime = 0.02f * Time.timeScale;
+    }
+
+    private IEnumerator Disappear() {
+        yield return new WaitForSeconds(ActiveTime);
+        cube_rigidbody.velocity = Vector2.zero;
+        Destroy(gameObject, 1);
     }
 }

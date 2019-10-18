@@ -71,9 +71,9 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 10
+  m_SortingOrder: 11
   m_Sprite: {fileID: 21300000, guid: fc63cc6cd7a88664e92e98f54257c1c9, type: 3}
-  m_Color: {r: 1, g: 0.9957261, b: 0, a: 1}
+  m_Color: {r: 1, g: 0.75347275, b: 0, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
@@ -127,7 +127,7 @@ Rigidbody2D:
   m_GravityScale: 0
   m_Material: {fileID: 0}
   m_Interpolate: 0
-  m_SleepingMode: 1
+  m_SleepingMode: 0
   m_CollisionDetection: 1
   m_Constraints: 4
 --- !u!114 &9131493715161231227
@@ -143,4 +143,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ActiveTime: 1
+  rotateSpeed: 300
   Player: {fileID: 0}
+  HitEnemy: 0
+  timeScale: 0.1
