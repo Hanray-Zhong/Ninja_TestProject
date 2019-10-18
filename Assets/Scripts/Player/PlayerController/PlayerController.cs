@@ -65,11 +65,13 @@ public class PlayerController : MonoBehaviour {
         // _rigidbody.AddForce(moveDir * MoveSpeed * Time.deltaTime, ForceMode2D.Force);
         // _transform.Translate(moveDir * MoveSpeed * Time.deltaTime, Space.World);
         if (!onHook) {
+            _rigidbody.freezeRotation = true;
             _rigidbody.velocity = new Vector2(moveDir.x * MoveSpeed, _rigidbody.velocity.y);
             transform.rotation = Quaternion.identity;
         }
 
         if (onHook) {
+            _rigidbody.freezeRotation = false;
             transform.up = nearestHook.transform.position - transform.position;
         }
     }
