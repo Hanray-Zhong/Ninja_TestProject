@@ -38,6 +38,8 @@ public class PlayerController : MonoBehaviour {
     private bool allowThrow = true;
     private Cube currentCube;
     private float lastGetThrowInteraction = 0;
+    // Flash
+    private bool FlashOver = true;
     // Hook
     private float nearestDistance;
     private GameObject nearestHook = null;
@@ -92,6 +94,8 @@ public class PlayerController : MonoBehaviour {
         OnGround();
         if (onGround) 
             allowJump = true;
+        else
+            allowJump = false;
         if (Input.GetKeyDown(KeyCode.J) && allowJump) {
             _rigidbody.velocity = new Vector2(_rigidbody.velocity.x, 0);
             _rigidbody.AddForce(Vector2.up * JumpForce, ForceMode2D.Impulse);
@@ -140,7 +144,7 @@ public class PlayerController : MonoBehaviour {
     private void CubeTimer() {
         if (Flash_CD_Time < 150)
             Flash_CD_Time++;
-        if (Flash_CD_Time == 150)
+        if (Flash_CD_Time == 150 && FlashOver)
             allowThrow = true;
         else
             allowThrow = false;
@@ -148,6 +152,7 @@ public class PlayerController : MonoBehaviour {
     private bool Flash() {
         if (!allowThrow && currentCube != null && Flash_CD_Time > 10) {
             if (Input.GetKeyDown(KeyCode.K)) {
+                FlashOver = false;
                 if (!currentCube.HitEnemy) {
                     gameObject.transform.position = currentCube.gameObject.transform.position;
                     Destroy(currentCube.gameObject);
@@ -155,13 +160,15 @@ public class PlayerController : MonoBehaviour {
                 if (currentCube.HitEnemy) {
                     Destroy(currentCube.Enemy);
                     gameObject.transform.position = currentCube.gameObject.transform.position;
-                    Flash_CD_Time = 150;
+                    Flash_CD_Time = 140;
                     Destroy(currentCube.gameObject);
                 }
                 allowJump = true;
                 return true;
             }
         }
+        if (Input.GetKeyUp(KeyCode.K))
+            FlashOver = true;
         return false;
     }
     private void GetHook() {
