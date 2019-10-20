@@ -44,6 +44,8 @@ public class PlayerController : MonoBehaviour {
     // Hook
     private float nearestDistance;
     private GameObject nearestHook = null;
+    private Vector2 velocity_beforeHook;
+    private bool justHook = false;
     // Component
     private Rigidbody2D _rigidbody;
     private Transform _transform;
@@ -84,6 +86,10 @@ public class PlayerController : MonoBehaviour {
 
         if (onHook) {
             _rigidbody.freezeRotation = false;
+            if (justHook) {
+                _rigidbody.velocity = velocity_beforeHook;
+                justHook = false;
+            }
             transform.up = nearestHook.transform.position - transform.position;
         }
     }
@@ -193,6 +199,8 @@ public class PlayerController : MonoBehaviour {
                 if (Input.GetKeyDown(KeyCode.L)) {
                     onHook = true;
                     secJump = true;
+                    velocity_beforeHook = _rigidbody.velocity;
+                    justHook = true;
                     nearestHook.GetComponent<HingeJoint2D>().connectedBody = _rigidbody;
                 }
             }

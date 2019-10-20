@@ -435,7 +435,6 @@ MonoBehaviour:
   Game_Input: {fileID: 179348990}
   MoveSpeed: 5
   JumpForce: 10
-  allowJump: 0
   CubePrefab: {fileID: 8128444132521573636, guid: 02991bbb5acce11418a62f354475d4cd,
     type: 3}
   ThrowPos: {fileID: 1675185993}
