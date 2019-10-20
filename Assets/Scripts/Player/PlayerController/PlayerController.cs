@@ -6,7 +6,6 @@ public class PlayerController : MonoBehaviour {
     [Header("Move")]
     public float MoveSpeed;
     public float JumpForce;
-    public bool allowJump;
     [Header("Throw Cube")]
     public GameObject CubePrefab;
     public Transform ThrowPos;
@@ -32,6 +31,8 @@ public class PlayerController : MonoBehaviour {
     private bool faceRight;
     // jump
     private bool onGround;
+    private bool allowJump = false;
+    private bool secJump = false;
     // private float jumpInteract;
     private float distance_toGround = 0.7f;
     // Throw Cube
@@ -96,10 +97,12 @@ public class PlayerController : MonoBehaviour {
             allowJump = true;
         else
             allowJump = false;
-        if (Input.GetKeyDown(KeyCode.J) && allowJump) {
+        if (Input.GetKeyDown(KeyCode.J) && (allowJump || secJump)) {
             _rigidbody.velocity = new Vector2(_rigidbody.velocity.x, 0);
             _rigidbody.AddForce(Vector2.up * JumpForce, ForceMode2D.Impulse);
             allowJump = false;
+            secJump = false;
+            Debug.Log("jump");
             return true;
         }
         return false;
@@ -163,7 +166,7 @@ public class PlayerController : MonoBehaviour {
                     Flash_CD_Time = 140;
                     Destroy(currentCube.gameObject);
                 }
-                allowJump = true;
+                secJump = true;
                 return true;
             }
         }
@@ -189,7 +192,7 @@ public class PlayerController : MonoBehaviour {
                 }
                 if (Input.GetKeyDown(KeyCode.L)) {
                     onHook = true;
-                    allowJump = true;
+                    secJump = true;
                     nearestHook.GetComponent<HingeJoint2D>().connectedBody = _rigidbody;
                 }
             }
@@ -203,18 +206,16 @@ public class PlayerController : MonoBehaviour {
         // 	连接时间到达5s（这种情况下断开后绳子会进入冷却，3s内不能再次使用）
         if (onHook && nearestHook != null) {
             Hang_Time++;
-            // 可视化Rope
-            Rope.gameObject.SetActive(true);
-            Rope.SetPosition(0, transform.position);
-            Rope.SetPosition(1, nearestHook.transform.position);
             // 上下攀爬
             Vector2 player_hook_dir = nearestHook.transform.position - transform.position;
             if (moveDir.y > 0) 
                 transform.Translate(player_hook_dir * ClimbSpeed * Time.deltaTime);
             if (moveDir.y < 0) 
                 transform.Translate(-player_hook_dir * ClimbSpeed * Time.deltaTime);
-            // 断开连接
-            if (Input.GetKeyUp(KeyCode.L) || onGround || this.Jump() || this.Flash()) {
+            // 断开连接 (跳跃断开判定有点奇怪)
+            if (this.Jump())
+                Debug.Log(this.Jump());
+            if (Input.GetKeyUp(KeyCode.L) || onGround || !secJump || this.Flash()) {
                 onHook = false;
                 nearestHook.GetComponent<HingeJoint2D>().connectedBody = null;
                 Hang_Time = 0;
@@ -225,6 +226,12 @@ public class PlayerController : MonoBehaviour {
                 Hang_Time = 0;
                 Hook_CD_Time = 0;
             }
+        }
+        if (onHook && nearestHook != null) {
+            // 可视化Rope
+            Rope.gameObject.SetActive(true);
+            Rope.SetPosition(0, transform.position);
+            Rope.SetPosition(1, nearestHook.transform.position);
         }
     }
     
