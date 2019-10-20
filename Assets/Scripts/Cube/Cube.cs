@@ -6,6 +6,7 @@ public class Cube : MonoBehaviour {
     public float rotateSpeed;
     public GameObject Player;
     public bool HitEnemy = false;
+    public GameObject Enemy = null;
     public float timeScale;
 
     // private PlayerController controller;
@@ -29,16 +30,9 @@ public class Cube : MonoBehaviour {
     private void OnTriggerStay2D(Collider2D other) {
         if (other.tag == "Enemy") {
             HitEnemy = true;
+            Enemy = other.gameObject;
             Time.timeScale = timeScale;
             Time.fixedDeltaTime = 0.02f * Time.timeScale;
-            if (Input.GetKeyDown(KeyCode.K)) {
-                Destroy(other.gameObject);
-                Player.transform.position = gameObject.transform.position;
-                PlayerController playerController = Player.GetComponent<PlayerController>();
-                playerController.CD_Time = 150;
-                playerController.allowJump = true;
-                Destroy(gameObject);
-            }
         }
     }
     private void OnTriggerExit2D(Collider2D other) {

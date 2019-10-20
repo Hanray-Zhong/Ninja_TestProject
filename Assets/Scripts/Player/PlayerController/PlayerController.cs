@@ -7,17 +7,24 @@ public class PlayerController : MonoBehaviour {
     public float MoveSpeed;
     public float JumpForce;
     public bool allowJump;
-    public bool onHook;
-    public float HookCircleRadius;
     [Header("Throw Cube")]
     public GameObject CubePrefab;
     public Transform ThrowPos;
     public float ThrowForce;
     public GameObject Arrow;
     [Range(0, 150)]
-    public float CD_Time = 0;
+    public float Flash_CD_Time = 0;
     [Range(0, 150)]
     public float Bullet_Time = 0;
+    [Header("Hook")]
+    public bool onHook;
+    public float HookCircleRadius;
+    [Range(0, 250)]
+    public float Hang_Time = 0;
+    [Range(0, 150)]
+    public float Hook_CD_Time = 150;
+    public float ClimbSpeed;
+    public LineRenderer Rope;
     
 
     // move
@@ -29,7 +36,7 @@ public class PlayerController : MonoBehaviour {
     private float distance_toGround = 0.7f;
     // Throw Cube
     private bool allowThrow = true;
-    private GameObject currentCube;
+    private Cube currentCube;
     private float lastGetThrowInteraction = 0;
     // Hook
     private float nearestDistance;
@@ -41,6 +48,7 @@ public class PlayerController : MonoBehaviour {
     private void Awake() {
         _rigidbody = gameObject.GetComponent<Rigidbody2D>();
         _transform = gameObject.GetComponent<Transform>();
+        Rope.positionCount = 2;
     }
     private void Update() {
         this.GetMoveDir();
@@ -76,7 +84,7 @@ public class PlayerController : MonoBehaviour {
             transform.up = nearestHook.transform.position - transform.position;
         }
     }
-    private void Jump() {
+    private bool Jump() {
         // jumpInteract = Game_Input.GetJumpInteraction();
         // if (jumpInteract > 0) {
         //     _rigidbody.AddForce(Vector2.up * JumpForce, ForceMode2D.Impulse);
@@ -88,7 +96,9 @@ public class PlayerController : MonoBehaviour {
             _rigidbody.velocity = new Vector2(_rigidbody.velocity.x, 0);
             _rigidbody.AddForce(Vector2.up * JumpForce, ForceMode2D.Impulse);
             allowJump = false;
+            return true;
         }
+        return false;
     }
     private void OnGround() {
         onGround = Physics2D.Raycast(transform.position, Vector2.down, distance_toGround, 1 << LayerMask.NameToLayer("Ground"));
@@ -99,21 +109,26 @@ public class PlayerController : MonoBehaviour {
             Time.fixedDeltaTime = 0.02f * Time.timeScale;
             Bullet_Time++;
             Arrow.SetActive(true);
-            Arrow.transform.up = moveDir;
+            if (moveDir != Vector2.zero)
+                Arrow.transform.up = moveDir;
+            else if (faceRight)
+                Arrow.transform.up = Vector2.right;
+            else
+                Arrow.transform.up = Vector2.left;
         }
         if ((Game_Input.GetThrowInteraction() - lastGetThrowInteraction < 0 || Bullet_Time >= 150) && allowThrow) {
-            currentCube = Instantiate(CubePrefab, ThrowPos.position, Quaternion.identity);
-            currentCube.GetComponent<Cube>().Player = gameObject;
-            Rigidbody2D cube_rigidbody = currentCube.GetComponent<Rigidbody2D>();
+            currentCube = Instantiate(CubePrefab, ThrowPos.position, Quaternion.identity).GetComponent<Cube>();
+            currentCube.Player = gameObject;
+            Rigidbody2D cube_rigidbody = currentCube.gameObject.GetComponent<Rigidbody2D>();
             if (cube_rigidbody != null) {
-                 if (moveDir != Vector2.zero)
+                if (moveDir != Vector2.zero)
                     cube_rigidbody.AddForce(moveDir * ThrowForce, ForceMode2D.Impulse);
                 else if (faceRight)
                     cube_rigidbody.AddForce(Vector2.right * ThrowForce, ForceMode2D.Impulse);
                 else
                     cube_rigidbody.AddForce(Vector2.left * ThrowForce, ForceMode2D.Impulse);
             }
-            CD_Time = 0;
+            Flash_CD_Time = 0;
             allowThrow = false;
             Bullet_Time = 0;
             Arrow.SetActive(false);
@@ -123,26 +138,39 @@ public class PlayerController : MonoBehaviour {
         lastGetThrowInteraction = Game_Input.GetThrowInteraction();
     }
     private void CubeTimer() {
-        if (CD_Time < 150)
-            CD_Time++;
-        if (CD_Time == 150)
+        if (Flash_CD_Time < 150)
+            Flash_CD_Time++;
+        if (Flash_CD_Time == 150)
             allowThrow = true;
         else
             allowThrow = false;
     }
-    private void Flash() {
-        if (!allowThrow && currentCube != null && CD_Time > 10) {
-            if (!currentCube.GetComponent<Cube>().HitEnemy && Input.GetKeyDown(KeyCode.K)) {
-                gameObject.transform.position = currentCube.transform.position;
-                Destroy(currentCube);
+    private bool Flash() {
+        if (!allowThrow && currentCube != null && Flash_CD_Time > 10) {
+            if (Input.GetKeyDown(KeyCode.K)) {
+                if (!currentCube.HitEnemy) {
+                    gameObject.transform.position = currentCube.gameObject.transform.position;
+                    Destroy(currentCube.gameObject);
+                }
+                if (currentCube.HitEnemy) {
+                    Destroy(currentCube.Enemy);
+                    gameObject.transform.position = currentCube.gameObject.transform.position;
+                    Flash_CD_Time = 150;
+                    Destroy(currentCube.gameObject);
+                }
                 allowJump = true;
-                Debug.Log("Flash!");
+                return true;
             }
         }
+        return false;
     }
     private void GetHook() {
         nearestDistance = HookCircleRadius;
-        if (!onGround && !onHook) {
+        if (Hook_CD_Time < 150)
+            Hook_CD_Time++;
+        if (!onHook)
+            Rope.gameObject.SetActive(false);
+        if (!onGround && !onHook && Hook_CD_Time >= 150) {
             Collider2D[] cols = Physics2D.OverlapCircleAll(transform.position, HookCircleRadius, 1 << LayerMask.NameToLayer("Hook"));
             if (cols.Length != 0) {
                 foreach (var col in cols) {
@@ -152,17 +180,43 @@ public class PlayerController : MonoBehaviour {
                         nearestDistance = currentDistance;
                     }
                 }
-                if (Input.GetKeyDown(KeyCode.I)) {
+                if (Input.GetKeyDown(KeyCode.L)) {
                     onHook = true;
+                    allowJump = true;
                     nearestHook.GetComponent<HingeJoint2D>().connectedBody = _rigidbody;
                 }
             }
         }
-        if (onHook) {
-            
-            if (Input.GetKeyUp(KeyCode.I)) {
+        // 松开钩子情况 ：
+        // 	松开”B”键
+        // 	双脚落地
+        // 	跳跃
+        // 	瞬移
+        // 	与另一个飞镖连接   ?????
+        // 	连接时间到达5s（这种情况下断开后绳子会进入冷却，3s内不能再次使用）
+        if (onHook && nearestHook != null) {
+            Hang_Time++;
+            // 可视化Rope
+            Rope.gameObject.SetActive(true);
+            Rope.SetPosition(0, transform.position);
+            Rope.SetPosition(1, nearestHook.transform.position);
+            // 上下攀爬
+            Vector2 player_hook_dir = nearestHook.transform.position - transform.position;
+            if (moveDir.y > 0) 
+                transform.Translate(player_hook_dir * ClimbSpeed * Time.deltaTime);
+            if (moveDir.y < 0) 
+                transform.Translate(-player_hook_dir * ClimbSpeed * Time.deltaTime);
+            // 断开连接
+            if (Input.GetKeyUp(KeyCode.L) || onGround || this.Jump() || this.Flash()) {
                 onHook = false;
                 nearestHook.GetComponent<HingeJoint2D>().connectedBody = null;
+                Hang_Time = 0;
+            }
+            if (Hang_Time >= 250) {
+                onHook = false;
+                nearestHook.GetComponent<HingeJoint2D>().connectedBody = null;
+                Hang_Time = 0;
+                Hook_CD_Time = 0;
             }
         }
     }
