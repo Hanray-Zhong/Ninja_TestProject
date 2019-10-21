@@ -444,6 +444,7 @@ MonoBehaviour:
   Bullet_Time: 0
   onHook: 0
   HookCircleRadius: 4.12
+  SwingForce: 100
   Hang_Time: 0
   Hook_CD_Time: 150
   ClimbSpeed: 1

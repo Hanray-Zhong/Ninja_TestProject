@@ -5,6 +5,7 @@ public class Cube : MonoBehaviour {
     public float ActiveTime;
     public float rotateSpeed;
     public GameObject Player;
+    public bool HitGround = false;
     public bool HitEnemy = false;
     public GameObject Enemy = null;
     public float timeScale;
@@ -23,6 +24,7 @@ public class Cube : MonoBehaviour {
     }
     private void OnTriggerEnter2D(Collider2D other) {
         if (other.tag == "Ground") {
+            HitGround = true;
             cube_rigidbody.velocity = Vector2.zero;
             Destroy(gameObject, 1);
         }

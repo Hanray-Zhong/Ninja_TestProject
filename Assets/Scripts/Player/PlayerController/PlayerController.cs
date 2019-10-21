@@ -18,6 +18,7 @@ public class PlayerController : MonoBehaviour {
     [Header("Hook")]
     public bool onHook;
     public float HookCircleRadius;
+    public float SwingForce;
     [Range(0, 250)]
     public float Hang_Time = 0;
     [Range(0, 150)]
@@ -78,7 +79,7 @@ public class PlayerController : MonoBehaviour {
     private void Move() {
         // _rigidbody.AddForce(moveDir * MoveSpeed * Time.deltaTime, ForceMode2D.Force);
         // _transform.Translate(moveDir * MoveSpeed * Time.deltaTime, Space.World);
-        if (!onHook) {
+        if (!onHook && Bullet_Time == 0) {
             _rigidbody.freezeRotation = true;
             _rigidbody.velocity = new Vector2(moveDir.x * MoveSpeed, _rigidbody.velocity.y);
             transform.rotation = Quaternion.identity;
@@ -162,6 +163,11 @@ public class PlayerController : MonoBehaviour {
         if (!allowThrow && currentCube != null && Flash_CD_Time > 10) {
             if (Input.GetKeyDown(KeyCode.K)) {
                 FlashOver = false;
+                if (currentCube.HitGround) {
+                    gameObject.transform.position = currentCube.gameObject.transform.position;
+                    Flash_CD_Time = 140;
+                    Destroy(currentCube.gameObject);
+                }
                 if (!currentCube.HitEnemy) {
                     gameObject.transform.position = currentCube.gameObject.transform.position;
                     Destroy(currentCube.gameObject);
@@ -216,10 +222,15 @@ public class PlayerController : MonoBehaviour {
             Hang_Time++;
             // 上下攀爬
             Vector2 player_hook_dir = nearestHook.transform.position - transform.position;
-            if (moveDir.y > 0) 
+            if (moveDir.y > 0 && transform.position.y < nearestHook.transform.position.y) 
                 transform.Translate(player_hook_dir * ClimbSpeed * Time.deltaTime);
-            if (moveDir.y < 0) 
+            if (moveDir.y < 0 && transform.position.y < nearestHook.transform.position.y) 
                 transform.Translate(-player_hook_dir * ClimbSpeed * Time.deltaTime);
+            // 左右晃动
+            if (transform.position.y < nearestHook.transform.position.y) {
+                Vector2 swingDir = new Vector2(moveDir.x, 0);
+                _rigidbody.AddForce(swingDir * SwingForce * Time.deltaTime, ForceMode2D.Force);
+            }
             // 断开连接 (跳跃断开判定有点奇怪)
             if (this.Jump())
                 Debug.Log(this.Jump());
