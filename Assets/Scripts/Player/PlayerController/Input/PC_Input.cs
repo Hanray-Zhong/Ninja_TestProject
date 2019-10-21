@@ -6,6 +6,7 @@ public class PC_Input : GameInput {
 	private float vt;
     private float jump_interact;
     private float throw_interact;
+    private float hook_interact;
 
     public override Vector2 GetMoveDir() {
         hl = Input.GetAxis("Horizontal");
@@ -15,13 +16,17 @@ public class PC_Input : GameInput {
     }
     public override float GetJumpInteraction() {
         jump_interact = Input.GetAxis("Jump");
-        if (jump_interact > 0) {
-            Debug.Log("Get Jump.");
-        }
+        // if (jump_interact > 0) {
+        //     Debug.Log("Get Jump.");
+        // }
         return jump_interact;
     }
     public override float GetThrowInteraction() {
         throw_interact = Input.GetAxis("Throw");
         return throw_interact;
+    }
+    public override float GetHookInteraction() {
+        hook_interact = Input.GetAxis("Hook");
+        return hook_interact;
     }
 }

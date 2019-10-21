@@ -449,6 +449,7 @@ MonoBehaviour:
   Hook_CD_Time: 150
   ClimbSpeed: 1
   Rope: {fileID: 2030656057}
+  x_offset: {x: 0.6, y: 0}
 --- !u!1001 &271305224
 PrefabInstance:
   m_ObjectHideFlags: 0

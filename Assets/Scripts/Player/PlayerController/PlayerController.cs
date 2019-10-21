@@ -36,10 +36,12 @@ public class PlayerController : MonoBehaviour {
     private bool secJump = false;
     // private float jumpInteract;
     private float distance_toGround = 0.7f;
+    private Vector2 x_offset = new Vector2(0.6f, 0);
     // Throw Cube
     private bool allowThrow = true;
     private Cube currentCube;
-    private float lastGetThrowInteraction = 0;
+    private float lastThrowInteraction = 0;
+    private float delta_ThrowInteraction;
     // Flash
     private bool FlashOver = true;
     // Hook
@@ -47,6 +49,8 @@ public class PlayerController : MonoBehaviour {
     private GameObject nearestHook = null;
     private Vector2 velocity_beforeHook;
     private bool justHook = false;
+    private float lastHookInteraction = 0;
+    private float delta_HookInteraction; 
     // Component
     private Rigidbody2D _rigidbody;
     private Transform _transform;
@@ -104,20 +108,22 @@ public class PlayerController : MonoBehaviour {
             allowJump = true;
         else
             allowJump = false;
-        if (Input.GetKeyDown(KeyCode.J) && (allowJump || secJump)) {
+        if (Game_Input.GetJumpInteraction() == 1 && (allowJump || secJump)) {
             _rigidbody.velocity = new Vector2(_rigidbody.velocity.x, 0);
             _rigidbody.AddForce(Vector2.up * JumpForce, ForceMode2D.Impulse);
             allowJump = false;
             secJump = false;
-            Debug.Log("jump");
             return true;
         }
         return false;
     }
     private void OnGround() {
-        onGround = Physics2D.Raycast(transform.position, Vector2.down, distance_toGround, 1 << LayerMask.NameToLayer("Ground"));
+        onGround = Physics2D.Raycast(transform.position, Vector2.down, distance_toGround, 1 << LayerMask.NameToLayer("Ground")) || 
+                    Physics2D.Raycast(transform.position + (Vector3)x_offset, Vector2.down, distance_toGround, 1 << LayerMask.NameToLayer("Ground")) || 
+                    Physics2D.Raycast(transform.position - (Vector3)x_offset, Vector2.down, distance_toGround, 1 << LayerMask.NameToLayer("Ground"));
     }
     private void ThrowCube() {
+        delta_ThrowInteraction = Game_Input.GetThrowInteraction() - lastThrowInteraction;
         if (Game_Input.GetThrowInteraction() == 1 && allowThrow) {
             Time.timeScale = 0.1f;
             Time.fixedDeltaTime = 0.02f * Time.timeScale;
@@ -130,7 +136,7 @@ public class PlayerController : MonoBehaviour {
             else
                 Arrow.transform.up = Vector2.left;
         }
-        if ((Game_Input.GetThrowInteraction() - lastGetThrowInteraction < 0 || Bullet_Time >= 150) && allowThrow) {
+        if ((delta_ThrowInteraction < 0 || Bullet_Time >= 150) && allowThrow) {
             currentCube = Instantiate(CubePrefab, ThrowPos.position, Quaternion.identity).GetComponent<Cube>();
             currentCube.Player = gameObject;
             Rigidbody2D cube_rigidbody = currentCube.gameObject.GetComponent<Rigidbody2D>();
@@ -149,7 +155,7 @@ public class PlayerController : MonoBehaviour {
             Time.timeScale = 1;
             Time.fixedDeltaTime = 0.02f * Time.timeScale;
         }
-        lastGetThrowInteraction = Game_Input.GetThrowInteraction();
+        lastThrowInteraction = Game_Input.GetThrowInteraction();
     }
     private void CubeTimer() {
         if (Flash_CD_Time < 150)
@@ -161,7 +167,7 @@ public class PlayerController : MonoBehaviour {
     }
     private bool Flash() {
         if (!allowThrow && currentCube != null && Flash_CD_Time > 10) {
-            if (Input.GetKeyDown(KeyCode.K)) {
+            if (delta_ThrowInteraction > 0) {
                 FlashOver = false;
                 if (currentCube.HitGround) {
                     gameObject.transform.position = currentCube.gameObject.transform.position;
@@ -182,11 +188,12 @@ public class PlayerController : MonoBehaviour {
                 return true;
             }
         }
-        if (Input.GetKeyUp(KeyCode.K))
+        if (delta_ThrowInteraction < 0)
             FlashOver = true;
         return false;
     }
     private void GetHook() {
+        delta_HookInteraction = Game_Input.GetHookInteraction() - lastHookInteraction;
         nearestDistance = HookCircleRadius;
         if (Hook_CD_Time < 150)
             Hook_CD_Time++;
@@ -202,7 +209,7 @@ public class PlayerController : MonoBehaviour {
                         nearestDistance = currentDistance;
                     }
                 }
-                if (Input.GetKeyDown(KeyCode.L)) {
+                if (delta_HookInteraction > 0) {
                     onHook = true;
                     secJump = true;
                     velocity_beforeHook = _rigidbody.velocity;
@@ -232,9 +239,7 @@ public class PlayerController : MonoBehaviour {
                 _rigidbody.AddForce(swingDir * SwingForce * Time.deltaTime, ForceMode2D.Force);
             }
             // 断开连接 (跳跃断开判定有点奇怪)
-            if (this.Jump())
-                Debug.Log(this.Jump());
-            if (Input.GetKeyUp(KeyCode.L) || onGround || !secJump || this.Flash()) {
+            if (delta_HookInteraction < 0 || onGround || !secJump || this.Flash()) {
                 onHook = false;
                 nearestHook.GetComponent<HingeJoint2D>().connectedBody = null;
                 Hang_Time = 0;
@@ -252,12 +257,14 @@ public class PlayerController : MonoBehaviour {
             Rope.SetPosition(0, transform.position);
             Rope.SetPosition(1, nearestHook.transform.position);
         }
+        lastHookInteraction = Game_Input.GetHookInteraction();
     }
     
 
     private void OnDrawGizmosSelected() {
         Gizmos.color = new Color(1, 0, 0);
         Gizmos.DrawLine(transform.position, transform.position + new Vector3(0, -distance_toGround, 0));
+        Gizmos.DrawLine(transform.position + (Vector3)x_offset, transform.position + new Vector3(0, -distance_toGround, 0));
         Gizmos.DrawWireSphere(transform.position, HookCircleRadius);
     }
 }
