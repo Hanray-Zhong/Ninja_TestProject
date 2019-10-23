@@ -25,6 +25,8 @@ public class PlayerController : MonoBehaviour {
     public float Hook_CD_Time = 150;
     public float ClimbSpeed;
     public LineRenderer Rope;
+    public float Max_RopeLength;
+    public float Min_RopeLength;
     
 
     // move
@@ -184,6 +186,7 @@ public class PlayerController : MonoBehaviour {
                     Flash_CD_Time = 140;
                     Destroy(currentCube.gameObject);
                 }
+                _rigidbody.velocity = Vector2.zero;
                 secJump = true;
                 return true;
             }
@@ -203,6 +206,8 @@ public class PlayerController : MonoBehaviour {
             Collider2D[] cols = Physics2D.OverlapCircleAll(transform.position, HookCircleRadius, 1 << LayerMask.NameToLayer("Hook"));
             if (cols.Length != 0) {
                 foreach (var col in cols) {
+                    if ((faceRight && col.gameObject.transform.position.x < _transform.position.x) || (!faceRight && col.gameObject.transform.position.x > _transform.position.x))
+                        continue;
                     float currentDistance = Vector2.Distance(col.gameObject.transform.position, transform.position);
                     if (nearestDistance > currentDistance) {
                         nearestHook = col.gameObject;
@@ -229,9 +234,9 @@ public class PlayerController : MonoBehaviour {
             Hang_Time++;
             // 上下攀爬
             Vector2 player_hook_dir = nearestHook.transform.position - transform.position;
-            if (moveDir.y > 0 && transform.position.y < nearestHook.transform.position.y) 
+            if (moveDir.y > 0 && transform.position.y < nearestHook.transform.position.y && player_hook_dir.magnitude > Min_RopeLength) 
                 transform.Translate(player_hook_dir * ClimbSpeed * Time.deltaTime);
-            if (moveDir.y < 0 && transform.position.y < nearestHook.transform.position.y) 
+            if (moveDir.y < 0 && transform.position.y < nearestHook.transform.position.y && player_hook_dir.magnitude < Max_RopeLength) 
                 transform.Translate(-player_hook_dir * ClimbSpeed * Time.deltaTime);
             // 左右晃动
             if (transform.position.y < nearestHook.transform.position.y) {
