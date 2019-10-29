@@ -10,14 +10,34 @@ namespace KanetoTools
         public bool FollowMouse;
         public Transform player;//获得角色
         public Vector2 Margin;//相机与角色的相对范围
-        public Vector2 smoothing;//相机移动的平滑度
+        public Vector2 Move_smoothing;//相机移动的平滑度
         public BoxCollider2D Bounds;//背景的边界
+        public bool SmoothlyUpdateBounds_x = false;
+        public bool SmoothlyUpdateBounds_y = false;
+        public Vector2 UpdateBoundsSmoothing = new Vector2(5, 5);
         [Header("Extra")]
         public bool PlayerToMouse;
         public bool MouseToPlayer;
  
-        private Vector3 _min;
-        private Vector3 _max;
+        private Vector3 _min = Vector3.zero;
+        private Vector3 _max = Vector3.zero;
+
+        public Vector3 _Max {
+            get {
+                return _max;
+            }
+            set {
+                _max = value;
+            }
+        }
+        public Vector3 _Min {
+            get {
+                return _min;
+            }
+            set {
+                _min = value;
+            }
+        }
  
         public bool IsFollowing;//用来判断是否跟随
     
@@ -40,16 +60,22 @@ namespace KanetoTools
             var y = transform.position.y;
             if (IsFollowing) {
                 if (Mathf.Abs(x - pos.x) > Margin.x) {//如果相机与角色的x轴距离超过了最大范围则将x平滑的移动到目标点的x
-                    x = Mathf.Lerp(x, pos.x, smoothing.x * Time.deltaTime);
+                    x = Mathf.Lerp(x, pos.x, Move_smoothing.x * Time.deltaTime);
                 }
                 if (Mathf.Abs (y - pos.y)> Margin.y) {//如果相机与角色的y轴距离超过了最大范围则将x平滑的移动到目标点的y
-                    y = Mathf.Lerp(y, pos.y, smoothing.y * Time.deltaTime);
+                    y = Mathf.Lerp(y, pos.y, Move_smoothing.y * Time.deltaTime);
                 }
             }
             float orthographicSize = GetComponent<Camera>().orthographicSize;//orthographicSize代表相机(或者称为游戏视窗)竖直方向一半的范围大小,且不随屏幕分辨率变化(水平方向会变)
             var cameraHalfWidth = orthographicSize * ((float)Screen.width / Screen.height);//的到视窗水平方向一半的大小
-            x = Mathf.Clamp (x, _min.x + cameraHalfWidth, _max.x-cameraHalfWidth);//限定x值
-            y = Mathf.Clamp (y, _min.y + orthographicSize, _max.y-orthographicSize);//限定y值
+            if (SmoothlyUpdateBounds_x) 
+                x = Mathf.Lerp(x, Mathf.Clamp (x, _min.x + cameraHalfWidth, _max.x-cameraHalfWidth), UpdateBoundsSmoothing.x * Time.deltaTime);
+            else 
+                x = Mathf.Clamp (x, _min.x + cameraHalfWidth, _max.x-cameraHalfWidth);
+            if (SmoothlyUpdateBounds_y)
+                y = Mathf.Lerp(y, Mathf.Clamp (y, _min.y + orthographicSize, _max.y-orthographicSize), UpdateBoundsSmoothing.y * Time.deltaTime);
+            else
+                y = Mathf.Clamp (y, _min.y + orthographicSize, _max.y-orthographicSize);
             transform.position = new Vector3(x, y, transform.position.z);//改变相机的位置
             Extra();
         }

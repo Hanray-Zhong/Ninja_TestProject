@@ -6,6 +6,8 @@ public class PlayerController : MonoBehaviour {
     [Header("Move")]
     public float MoveSpeed;
     public float JumpForce;
+    public float distance_toGround;
+    public Vector2 x_offset;
     [Header("Throw Cube")]
     public GameObject CubePrefab;
     public Transform ThrowPos;
@@ -37,8 +39,7 @@ public class PlayerController : MonoBehaviour {
     private bool allowJump = false;
     private bool secJump = false;
     // private float jumpInteract;
-    private float distance_toGround = 0.7f;
-    private Vector2 x_offset = new Vector2(0.6f, 0);
+    
     // Throw Cube
     private bool allowThrow = true;
     private Cube currentCube;
@@ -143,6 +144,7 @@ public class PlayerController : MonoBehaviour {
             currentCube.Player = gameObject;
             Rigidbody2D cube_rigidbody = currentCube.gameObject.GetComponent<Rigidbody2D>();
             if (cube_rigidbody != null) {
+                Debug.Log(moveDir);
                 if (moveDir != Vector2.zero)
                     cube_rigidbody.AddForce(moveDir * ThrowForce, ForceMode2D.Impulse);
                 else if (faceRight)
@@ -213,6 +215,9 @@ public class PlayerController : MonoBehaviour {
                         nearestHook = col.gameObject;
                         nearestDistance = currentDistance;
                     }
+                }
+                if (nearestHook == null) {
+                    return;
                 }
                 if (delta_HookInteraction > 0) {
                     onHook = true;
