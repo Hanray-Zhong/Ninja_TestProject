@@ -205,6 +205,11 @@ public class PlayerController : MonoBehaviour {
         if (!onHook)
             Rope.gameObject.SetActive(false);
         if (!onGround && !onHook && Hook_CD_Time >= 150) {
+            if (nearestHook != null) {
+                float Distance_nearestHook_Player = Vector2.Distance(nearestHook.transform.position, transform.position);
+                if (Distance_nearestHook_Player > HookCircleRadius)
+                    nearestHook = null;
+            }
             Collider2D[] cols = Physics2D.OverlapCircleAll(transform.position, HookCircleRadius, 1 << LayerMask.NameToLayer("Hook"));
             if (cols.Length != 0) {
                 foreach (var col in cols) {
