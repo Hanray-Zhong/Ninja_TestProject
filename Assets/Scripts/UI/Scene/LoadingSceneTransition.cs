@@ -1,13 +1,22 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
+using KanetoTools;
 
-namespace KanetoTools
+public class LoadingSceneTransition : MonoBehaviour
 {
-	public class UITools : MonoBehaviour
-	{
-    	public static void Fade(GameObject self, bool CanFade, float PresetFadeSpeed, float FadeSpeed) {
+    private bool canFade;
+    public bool CanFade {
+        get {return canFade;}
+        set {canFade = value;}
+    }
+
+    private float FadeSpeed = 0;
+    void Update() {
+        Fade(gameObject, 0);
+    }
+
+    public void Fade(GameObject self, float PresetFadeSpeed) {
 			CanvasGroup canvasGroup = self.GetComponent<CanvasGroup>();
 			if (canvasGroup == null) {
 				Debug.Log("Fade Error : CanvasGroup is null.");
@@ -39,6 +48,4 @@ namespace KanetoTools
 				CanFade = false;
 			}
    	 	}
-	}
 }
-
