@@ -6,6 +6,8 @@ TagManager:
   tags:
   - Ground
   - Enemy
+  - Map
+  - MapBounds
   layers:
   - Default
   - TransparentFX

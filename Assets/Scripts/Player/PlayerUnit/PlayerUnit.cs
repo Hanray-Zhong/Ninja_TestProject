@@ -11,7 +11,7 @@ public class PlayerUnit : MonoBehaviour
     public GameObject DeadEffect;
     public LoadingSceneTransition LoadSceneTransition;
 
-    private bool isDead;
+    private bool isDead = false;
     private SpriteRenderer sprite;
     private Rigidbody2D _rigidbody;
 
