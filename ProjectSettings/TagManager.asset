@@ -8,6 +8,7 @@ TagManager:
   - Enemy
   - Map
   - MapBounds
+  - InterActiveItem
   layers:
   - Default
   - TransparentFX

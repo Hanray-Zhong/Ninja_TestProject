@@ -4,7 +4,11 @@ public class PlayerController : MonoBehaviour {
     [Header("Game Input")]
     public GameInput Game_Input;
     [Header("Move")]
-    public float MoveSpeed;
+    public float MoveSpeed = 3;
+    private float normalSpeed = 3;
+    public float NormalSpeed {
+        get {return normalSpeed;}
+    }
     public float JumpForce;
     public float distance_toGround;
     public Vector2 x_offset;
@@ -33,9 +37,15 @@ public class PlayerController : MonoBehaviour {
 
     // move
     private Vector2 moveDir;
+    public Vector2 MoveDir {
+        get {return moveDir;}
+    }
     private bool faceRight;
     // jump
     private bool onGround;
+    public bool OnGround {
+        get {return onGround;}
+    }
     private bool allowJump = false;
     private bool secJump = false;
     // private float jumpInteract;
@@ -61,7 +71,8 @@ public class PlayerController : MonoBehaviour {
     private void Awake() {
         _rigidbody = gameObject.GetComponent<Rigidbody2D>();
         _transform = gameObject.GetComponent<Transform>();
-        Rope.positionCount = 2;
+        if (Rope != null)
+            Rope.positionCount = 2;
     }
     private void Update() {
         this.GetMoveDir();
@@ -101,12 +112,12 @@ public class PlayerController : MonoBehaviour {
             transform.up = nearestHook.transform.position - transform.position;
         }
     }
-    private bool Jump() {
+    public bool Jump() {
         // jumpInteract = Game_Input.GetJumpInteraction();
         // if (jumpInteract > 0) {
         //     _rigidbody.AddForce(Vector2.up * JumpForce, ForceMode2D.Impulse);
         // }
-        OnGround();
+        IsOnGround();
         if (onGround) 
             allowJump = true;
         else
@@ -120,7 +131,7 @@ public class PlayerController : MonoBehaviour {
         }
         return false;
     }
-    private void OnGround() {
+    private void IsOnGround() {
         onGround = Physics2D.Raycast(transform.position, Vector2.down, distance_toGround, 1 << LayerMask.NameToLayer("Ground")) || 
                     Physics2D.Raycast(transform.position + (Vector3)x_offset, Vector2.down, distance_toGround, 1 << LayerMask.NameToLayer("Ground")) || 
                     Physics2D.Raycast(transform.position - (Vector3)x_offset, Vector2.down, distance_toGround, 1 << LayerMask.NameToLayer("Ground"));
@@ -144,7 +155,6 @@ public class PlayerController : MonoBehaviour {
             currentCube.Player = gameObject;
             Rigidbody2D cube_rigidbody = currentCube.gameObject.GetComponent<Rigidbody2D>();
             if (cube_rigidbody != null) {
-                Debug.Log(moveDir);
                 if (moveDir != Vector2.zero)
                     cube_rigidbody.AddForce(moveDir * ThrowForce, ForceMode2D.Impulse);
                 else if (faceRight)
@@ -178,17 +188,24 @@ public class PlayerController : MonoBehaviour {
                     Flash_CD_Time = 140;
                     Destroy(currentCube.gameObject);
                 }
-                if (!currentCube.HitEnemy) {
+                if (!currentCube.HitEnemy && !currentCube.HitInteractiveItem) {
                     gameObject.transform.position = currentCube.gameObject.transform.position;
                     Destroy(currentCube.gameObject);
+                    _rigidbody.velocity = Vector2.zero;
                 }
                 if (currentCube.HitEnemy) {
                     Destroy(currentCube.Enemy);
                     gameObject.transform.position = currentCube.gameObject.transform.position;
                     Flash_CD_Time = 140;
                     Destroy(currentCube.gameObject);
+                    _rigidbody.velocity = Vector2.zero;
                 }
-                _rigidbody.velocity = Vector2.zero;
+                if (currentCube.HitInteractiveItem) {
+                    currentCube.InteractiveItem.GetComponent<InterActiveItem>().InterAction();
+                    Destroy(currentCube.gameObject);
+                    gameObject.transform.position = currentCube.gameObject.transform.position;
+                    Flash_CD_Time = 140;
+                }
                 secJump = true;
                 return true;
             }
@@ -202,7 +219,7 @@ public class PlayerController : MonoBehaviour {
         nearestDistance = HookCircleRadius;
         if (Hook_CD_Time < 150)
             Hook_CD_Time++;
-        if (!onHook)
+        if (!onHook && Rope != null)
             Rope.gameObject.SetActive(false);
         if (!onGround && !onHook && Hook_CD_Time >= 150) {
             if (nearestHook != null) {
@@ -266,7 +283,7 @@ public class PlayerController : MonoBehaviour {
                 Hook_CD_Time = 0;
             }
         }
-        if (onHook && nearestHook != null) {
+        if (onHook && nearestHook != null && Rope != null) {
             // 可视化Rope
             Rope.gameObject.SetActive(true);
             Rope.SetPosition(0, transform.position);

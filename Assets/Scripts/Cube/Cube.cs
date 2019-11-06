@@ -8,6 +8,8 @@ public class Cube : MonoBehaviour {
     public bool HitGround = false;
     public bool HitEnemy = false;
     public GameObject Enemy = null;
+    public bool HitInteractiveItem = false;
+    public GameObject InteractiveItem;
     public float timeScale;
 
     // private PlayerController controller;
@@ -36,9 +38,16 @@ public class Cube : MonoBehaviour {
             Time.timeScale = timeScale;
             Time.fixedDeltaTime = 0.02f * Time.timeScale;
         }
+        if (other.tag == "InterActiveItem") {
+            HitInteractiveItem = true;
+            InteractiveItem = other.gameObject;
+            Time.timeScale = timeScale;
+            Time.fixedDeltaTime = 0.02f * Time.timeScale;
+        }
     }
     private void OnTriggerExit2D(Collider2D other) {
         HitEnemy = false;
+        HitInteractiveItem = false;
         Time.timeScale = 1;
         Time.fixedDeltaTime = 0.02f * Time.timeScale;
     }
