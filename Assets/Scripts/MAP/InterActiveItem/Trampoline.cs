@@ -7,6 +7,7 @@ public class Trampoline : MonoBehaviour {
         playerRigidbody = GameObject.FindGameObjectWithTag("Player").GetComponent<Rigidbody2D>();
     }
     private void OnTriggerStay2D(Collider2D other) {
+        
         if (other.tag == "Player") {
             playerRigidbody.velocity = new Vector2(playerRigidbody.velocity.x, Force);
         }
