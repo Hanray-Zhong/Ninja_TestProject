@@ -11,15 +11,23 @@ public class FloatBlock : MonoBehaviour
     private Vector3 oringinPos;
     private bool isRising = false;
     private bool onGround = false;
+    private bool canInvoke = true;
 
     private Rigidbody2D _rigidbody2D;
+    private PlayerUnit playerUnit;
 
     private void Start() {
-        oringinPos = transform.position;
+        oringinPos = transform.parent.position;
         _rigidbody2D = transform.parent.GetComponent<Rigidbody2D>();
+        playerUnit = GameObject.FindGameObjectWithTag("Player").GetComponent<PlayerUnit>();
     }
 
     private void Update() {
+        if (!playerUnit.IsDead) canInvoke = true;
+        if (playerUnit.IsDead && canInvoke) {
+            Invoke("SetOringinPos", 1.5f);
+            canInvoke = false;
+        }
         IsOnGround();
         if (onGround) {
             isRising = true;
@@ -41,8 +49,14 @@ public class FloatBlock : MonoBehaviour
     }
     private void OnTriggerEnter2D(Collider2D other) {
         if (other.tag == "Player") {
+            Debug.Log(1);
             _rigidbody2D.velocity = new Vector2(0, -DownSpeed);
         }
+    }
+    private void SetOringinPos() {
+        transform.parent.transform.position = oringinPos;
+        _rigidbody2D.velocity = Vector2.zero;
+        isRising = false;
     }
 
     private void OnDrawGizmosSelected() {

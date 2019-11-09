@@ -7,7 +7,8 @@ public class EnemyController : MonoBehaviour
     public GameObject EnemyPrefab;
     public GameObject[] Enemies;
     public Vector2[] EnemiesPos;
-    private bool canCoroutine = true;
+    public PlayerUnit playerUnit;
+    private bool canInvoke = true;
 
     private void Awake() {
         for (int i = 0; i < Enemies.Length; i++) {
@@ -15,20 +16,24 @@ public class EnemyController : MonoBehaviour
         }
     }
     private void Update() {
-        int i = 0;
-        foreach (var enemy in Enemies) {
-            if (enemy == null && canCoroutine) {
-                canCoroutine = false;
-                StartCoroutine(CreatNewEnemy(EnemyPrefab, EnemiesPos[i], i));
-            }
-            i++;
+        if (!playerUnit.IsDead) canInvoke = true;
+        if (playerUnit != null && playerUnit.IsDead && canInvoke) {
+            Invoke("ResurrectionEnemies", 1.5f);
+            canInvoke = false;
         }
     }
 
-
-    IEnumerator CreatNewEnemy(GameObject EnemyPrefab, Vector2 Pos, int index) {
-        yield return new WaitForSeconds(5);
-        Enemies[index] = Instantiate(EnemyPrefab, Pos, Quaternion.identity, gameObject.transform);
-        canCoroutine = true;
+    private void ResurrectionEnemies() {
+        foreach (var enemy in Enemies) {
+            if (!enemy.activeSelf) {
+                enemy.SetActive(true);
+            }
+        }
     }
+
+    // IEnumerator CreatNewEnemy(GameObject EnemyPrefab, Vector2 Pos, int index) {
+    //     yield return new WaitForSeconds(5);
+    //     Enemies[index] = Instantiate(EnemyPrefab, Pos, Quaternion.identity, gameObject.transform);
+    //     canCoroutine = true;
+    // }
 }

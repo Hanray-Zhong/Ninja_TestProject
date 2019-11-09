@@ -13,18 +13,15 @@ namespace KanetoTools
         public void DontDestroyOnLoad(GameObject obj) {
             Object.DontDestroyOnLoad(obj);
         }
-
-
-
-
-
-
-
-
-
 	    IEnumerator Load(int SceneIndex, float delay) {
 		    yield return new WaitForSeconds(delay);
 		    SceneManager.LoadScene(SceneIndex);
 	    }
+
+
+
+        public void ExitGame() {
+            Application.Quit();
+        }
     }
 }

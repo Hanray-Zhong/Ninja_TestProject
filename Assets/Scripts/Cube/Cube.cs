@@ -12,11 +12,12 @@ public class Cube : MonoBehaviour {
     public GameObject InteractiveItem;
     public float timeScale;
 
-    // private PlayerController controller;
+    private PlayerUnit playerUnit;
     private Rigidbody2D cube_rigidbody;
 
     private void Awake() {
-        // controller = Player.GetComponent<PlayerController>();
+        Player = GameObject.FindGameObjectWithTag("Player");
+        playerUnit = Player.GetComponent<PlayerUnit>();
         cube_rigidbody = gameObject.GetComponent<Rigidbody2D>();
     }
 
@@ -25,13 +26,12 @@ public class Cube : MonoBehaviour {
         StartCoroutine(Disappear());
     }
     private void OnTriggerEnter2D(Collider2D other) {
+        if (playerUnit.IsDead) Destroy(gameObject);
         if (other.tag == "Ground") {
             HitGround = true;
             cube_rigidbody.velocity = Vector2.zero;
             Destroy(gameObject, 1);
         }
-    }
-    private void OnTriggerStay2D(Collider2D other) {
         if (other.tag == "Enemy") {
             HitEnemy = true;
             Enemy = other.gameObject;
