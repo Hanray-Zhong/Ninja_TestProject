@@ -9,8 +9,8 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 13312, guid: 0000000000000000e000000000000000, type: 0}
-  m_Name: TileMapCube
+  m_Script: {fileID: 11500000, guid: 52f6badadf3d78645bf0be629f67574d, type: 3}
+  m_Name: Hook
   m_EditorClassIdentifier: 
   m_Sprite: {fileID: 21300000, guid: a4b402098ac35e344b96c010cf783a19, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -31,6 +31,7 @@ MonoBehaviour:
     e31: 0
     e32: 0
     e33: 1
-  m_InstancedGameObject: {fileID: 0}
+  m_InstancedGameObject: {fileID: 7384438044361230963, guid: f0b00177da80f4845b1d08c25373af7f,
+    type: 3}
   m_Flags: 1
   m_ColliderType: 1
