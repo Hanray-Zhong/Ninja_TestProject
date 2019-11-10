@@ -49,7 +49,6 @@ public class FloatBlock : MonoBehaviour
     }
     private void OnTriggerEnter2D(Collider2D other) {
         if (other.tag == "Player") {
-            Debug.Log(1);
             _rigidbody2D.velocity = new Vector2(0, -DownSpeed);
         }
     }

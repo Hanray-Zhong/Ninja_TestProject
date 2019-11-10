@@ -1,8 +1,10 @@
 using UnityEngine;
+using UnityEngine.UI;
 
 public class PlayerController : MonoBehaviour {
     [Header("Game Input")]
-    public GameInput Game_Input;
+    public GameInput PlayerGameInput;
+    public Dropdown dropdown;
     [Header("Move")]
     public float MoveSpeed = 3;
     private float normalSpeed = 3;
@@ -101,7 +103,7 @@ public class PlayerController : MonoBehaviour {
     }
 
     private void GetMoveDir() {
-        moveDir = Game_Input.GetMoveDir();
+        moveDir = PlayerGameInput.GetMoveDir();
         if (moveDir.x > 0)
             faceRight = true;
         if (moveDir.x < 0)
@@ -127,7 +129,7 @@ public class PlayerController : MonoBehaviour {
         }
     }
     public bool Jump() {
-        // jumpInteract = Game_Input.GetJumpInteraction();
+        // jumpInteract = PlayerGameInput.GetJumpInteraction();
         // if (jumpInteract > 0) {
         //     _rigidbody.AddForce(Vector2.up * JumpForce, ForceMode2D.Impulse);
         // }
@@ -136,7 +138,7 @@ public class PlayerController : MonoBehaviour {
             allowJump = true;
         else
             allowJump = false;
-        if (Game_Input.GetJumpInteraction() == 1 && (allowJump || secJump)) {
+        if (PlayerGameInput.GetJumpInteraction() == 1 && (allowJump || secJump)) {
             _rigidbody.velocity = new Vector2(_rigidbody.velocity.x, 0);
             _rigidbody.AddForce(Vector2.up * JumpForce, ForceMode2D.Impulse);
             allowJump = false;
@@ -151,8 +153,8 @@ public class PlayerController : MonoBehaviour {
                     Physics2D.Raycast(transform.position - (Vector3)x_offset, Vector2.down, distance_toGround, 1 << LayerMask.NameToLayer("Ground"));
     }
     private void ThrowCube() {
-        delta_ThrowInteraction = Game_Input.GetThrowInteraction() - lastThrowInteraction;
-        if (Game_Input.GetThrowInteraction() == 1 && allowThrow) {
+        delta_ThrowInteraction = PlayerGameInput.GetThrowInteraction() - lastThrowInteraction;
+        if (PlayerGameInput.GetThrowInteraction() == 1 && allowThrow) {
             Time.timeScale = 0.1f;
             Time.fixedDeltaTime = 0.02f * Time.timeScale;
             Bullet_Time++;
@@ -183,7 +185,7 @@ public class PlayerController : MonoBehaviour {
             Time.timeScale = 1;
             Time.fixedDeltaTime = 0.02f * Time.timeScale;
         }
-        lastThrowInteraction = Game_Input.GetThrowInteraction();
+        lastThrowInteraction = PlayerGameInput.GetThrowInteraction();
     }
     private void CubeTimer() {
         if (CubeCDTime < 150)
@@ -239,7 +241,7 @@ public class PlayerController : MonoBehaviour {
         return false;
     }
     private void GetHook() {
-        delta_HookInteraction = Game_Input.GetHookInteraction() - lastHookInteraction;
+        delta_HookInteraction = PlayerGameInput.GetHookInteraction() - lastHookInteraction;
         nearestDistance = HookCircleRadius;
         if (Hook_CD_Time < 150)
             Hook_CD_Time++;
@@ -313,7 +315,7 @@ public class PlayerController : MonoBehaviour {
             Rope.SetPosition(0, transform.position);
             Rope.SetPosition(1, nearestHook.transform.position);
         }
-        lastHookInteraction = Game_Input.GetHookInteraction();
+        lastHookInteraction = PlayerGameInput.GetHookInteraction();
     }
     
     public void ResetStatus() {
@@ -321,6 +323,12 @@ public class PlayerController : MonoBehaviour {
         Bullet_Time = 0;
         Hang_Time = 0;
         Hook_CD_Time = 150;
+    }
+    public void SwitchGameInput() {
+        switch (dropdown.value) {
+            case 0 : PlayerGameInput = gameObject.GetComponent<PC_Input>(); break;
+            case 1 : PlayerGameInput = gameObject.GetComponent<XBox_Input>(); break;
+        }
     }
 
     private void OnDrawGizmosSelected() {
