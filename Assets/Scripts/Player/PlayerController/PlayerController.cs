@@ -24,6 +24,7 @@ public class PlayerController : MonoBehaviour {
     [Range(0, 150)]
     public float Bullet_Timer = 0;
     public GameObject FlashEffect;
+    public TrailRenderer trailRenderer;
     [Header("Hook")]
     public bool onHook;
     public float HookCircleRadius;
@@ -213,8 +214,10 @@ public class PlayerController : MonoBehaviour {
         if (!allowThrow && currentCube != null && CubeCDTimer > 10) {
             if (delta_ThrowInteraction > 0) {
                 FlashOver = false;
-                if (FlashEffect != null)
+                if (FlashEffect != null) {
+                    trailRenderer.emitting = true;
                     Instantiate(FlashEffect, transform.position, Quaternion.identity);
+                }
                 if (currentCube.HitGround) {
                     gameObject.transform.position = currentCube.gameObject.transform.position;
                     CubeCDTimer = 140;
@@ -238,8 +241,11 @@ public class PlayerController : MonoBehaviour {
                     gameObject.transform.position = currentCube.gameObject.transform.position;
                     CubeCDTimer = 140;
                 }
-                if (FlashEffect != null)
+                if (FlashEffect != null) {
+                    Invoke("SetTrailRendererFalse", 0.1f);
+                    
                     Instantiate(FlashEffect, transform.position, Quaternion.identity);
+                }
                 secJump = true;
                 return true;
             }
@@ -247,6 +253,9 @@ public class PlayerController : MonoBehaviour {
         if (delta_ThrowInteraction < 0)
             FlashOver = true;
         return false;
+    }
+    private void SetTrailRendererFalse() {
+        trailRenderer.emitting = false;
     }
     private void GetHook() {
         delta_HookInteraction = PlayerGameInput.GetHookInteraction() - lastHookInteraction;

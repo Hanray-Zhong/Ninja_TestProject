@@ -502,6 +502,8 @@ MonoBehaviour:
   Arrow: {fileID: 3922431956945914925}
   CubeCDTimer: 150
   Bullet_Timer: 0
+  FlashEffect: {fileID: 0}
+  trailRenderer: {fileID: 0}
   onHook: 0
   HookCircleRadius: 8
   SwingForce: 100
