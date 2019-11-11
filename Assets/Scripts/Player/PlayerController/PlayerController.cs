@@ -6,8 +6,8 @@ public class PlayerController : MonoBehaviour {
     public GameInput PlayerGameInput;
     public Dropdown dropdown;
     [Header("Move")]
-    public float MoveSpeed = 3;
-    private float normalSpeed = 3;
+    public float MoveSpeed;
+    private float normalSpeed;
     public float NormalSpeed {
         get {return normalSpeed;}
     }
@@ -20,9 +20,10 @@ public class PlayerController : MonoBehaviour {
     public float ThrowForce;
     public GameObject Arrow;
     [Range(0, 150)]
-    public float CubeCDTime = 0;
+    public float CubeCDTimer = 0;
     [Range(0, 150)]
-    public float Bullet_Time = 0;
+    public float Bullet_Timer = 0;
+    public GameObject FlashEffect;
     [Header("Hook")]
     public bool onHook;
     public float HookCircleRadius;
@@ -43,6 +44,9 @@ public class PlayerController : MonoBehaviour {
         get {return moveDir;}
     }
     private bool faceRight;
+    public bool FaceRight {
+        get {return this.faceRight;}
+    }
     [Header("jump")]
     private bool onGround;
     public bool OnGround {
@@ -113,7 +117,7 @@ public class PlayerController : MonoBehaviour {
     private void Move() {
         // _rigidbody.AddForce(moveDir * MoveSpeed * Time.deltaTime, ForceMode2D.Force);
         // _transform.Translate(moveDir * MoveSpeed * Time.deltaTime, Space.World);
-        if (!onHook && Bullet_Time == 0) {
+        if (!onHook && Bullet_Timer == 0) {
             _rigidbody.freezeRotation = true;
             _rigidbody.velocity = new Vector2(moveDir.x * MoveSpeed, _rigidbody.velocity.y);
             transform.rotation = Quaternion.identity;
@@ -157,7 +161,7 @@ public class PlayerController : MonoBehaviour {
         if (PlayerGameInput.GetThrowInteraction() == 1 && allowThrow) {
             Time.timeScale = 0.1f;
             Time.fixedDeltaTime = 0.02f * Time.timeScale;
-            Bullet_Time++;
+            Bullet_Timer++;
             Arrow.SetActive(true);
             if (moveDir != Vector2.zero)
                 Arrow.transform.up = moveDir;
@@ -166,7 +170,7 @@ public class PlayerController : MonoBehaviour {
             else
                 Arrow.transform.up = Vector2.left;
         }
-        if ((delta_ThrowInteraction < 0 || Bullet_Time >= 150) && allowThrow) {
+        if ((delta_ThrowInteraction < 0 || Bullet_Timer >= 150) && allowThrow) {
             currentCube = Instantiate(CubePrefab, ThrowPos.position, Quaternion.identity).GetComponent<Cube>();
             currentCube.Player = gameObject;
             Rigidbody2D cube_rigidbody = currentCube.gameObject.GetComponent<Rigidbody2D>();
@@ -178,9 +182,9 @@ public class PlayerController : MonoBehaviour {
                 else
                     cube_rigidbody.AddForce(Vector2.left * ThrowForce, ForceMode2D.Impulse);
             }
-            CubeCDTime = 0;
+            CubeCDTimer = 0;
             allowThrow = false;
-            Bullet_Time = 0;
+            Bullet_Timer = 0;
             Arrow.SetActive(false);
             Time.timeScale = 1;
             Time.fixedDeltaTime = 0.02f * Time.timeScale;
@@ -188,30 +192,32 @@ public class PlayerController : MonoBehaviour {
         lastThrowInteraction = PlayerGameInput.GetThrowInteraction();
     }
     private void CubeTimer() {
-        if (CubeCDTime < 150)
-            CubeCDTime++;
-        if (CubeCDTime == 150 && FlashOver)
+        if (CubeCDTimer < 150)
+            CubeCDTimer++;
+        if (CubeCDTimer == 150 && FlashOver)
             allowThrow = true;
         else
             allowThrow = false;
     }
     private void CheckCubeCD() {
-        Color gray = new Color(0, 0, 0, 0.5f);
         Color black = new Color(0, 0, 0, 1f);
-        if (CubeCDTime < 150) {
-            sprite.color = gray;
+        Color white = new Color(1, 1, 1, 1f);
+        if (CubeCDTimer < 150) {
+            sprite.color = black;
         }
         else {
-            sprite.color = black;
+            sprite.color = white;
         }
     }
     private bool Flash() {
-        if (!allowThrow && currentCube != null && CubeCDTime > 10) {
+        if (!allowThrow && currentCube != null && CubeCDTimer > 10) {
             if (delta_ThrowInteraction > 0) {
                 FlashOver = false;
+                if (FlashEffect != null)
+                    Instantiate(FlashEffect, transform.position, Quaternion.identity);
                 if (currentCube.HitGround) {
                     gameObject.transform.position = currentCube.gameObject.transform.position;
-                    CubeCDTime = 140;
+                    CubeCDTimer = 140;
                     Destroy(currentCube.gameObject);
                 }
                 if (!currentCube.HitEnemy && !currentCube.HitInteractiveItem) {
@@ -222,7 +228,7 @@ public class PlayerController : MonoBehaviour {
                 if (currentCube.HitEnemy) {
                     currentCube.Enemy.SetActive(false);
                     gameObject.transform.position = currentCube.gameObject.transform.position;
-                    CubeCDTime = 140;
+                    CubeCDTimer = 140;
                     Destroy(currentCube.gameObject);
                     _rigidbody.velocity = Vector2.zero;
                 }
@@ -230,8 +236,10 @@ public class PlayerController : MonoBehaviour {
                     currentCube.InteractiveItem.GetComponent<InterActiveItem>().InterAction();
                     Destroy(currentCube.gameObject);
                     gameObject.transform.position = currentCube.gameObject.transform.position;
-                    CubeCDTime = 140;
+                    CubeCDTimer = 140;
                 }
+                if (FlashEffect != null)
+                    Instantiate(FlashEffect, transform.position, Quaternion.identity);
                 secJump = true;
                 return true;
             }
@@ -319,8 +327,8 @@ public class PlayerController : MonoBehaviour {
     }
     
     public void ResetStatus() {
-        CubeCDTime = 150;
-        Bullet_Time = 0;
+        CubeCDTimer = 150;
+        Bullet_Timer = 0;
         Hang_Time = 0;
         Hook_CD_Time = 150;
     }

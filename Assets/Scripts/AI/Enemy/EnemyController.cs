@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class EnemyController : MonoBehaviour
 {
-    public GameObject EnemyPrefab;
+    // public GameObject EnemyPrefab;
     public GameObject[] Enemies;
     public Vector2[] EnemiesPos;
     public PlayerUnit playerUnit;

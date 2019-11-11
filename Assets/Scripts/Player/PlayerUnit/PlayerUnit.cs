@@ -10,7 +10,7 @@ public class PlayerUnit : MonoBehaviour
     public Transform ResurrectionPoint;
     [Header("Deadth")]
     public GameObject DeadEffect;
-    public CameraFollow cameraFollow;
+
     public LoadingSceneTransition LoadSceneTransition;
 
     private bool isDead = false;
@@ -38,10 +38,7 @@ public class PlayerUnit : MonoBehaviour
             // 物理清零
             _rigidbody.gravityScale = 0;
             _rigidbody.velocity = Vector2.zero;
-            // 状态充值
-            _controller.ResetStatus();
-
-            cameraFollow.IsFollowing = false;
+            
 
             StartCoroutine(Resurrection());
             canCoroutine = false;
@@ -55,9 +52,8 @@ public class PlayerUnit : MonoBehaviour
         if (DeadEffect != null) {
             Instantiate(DeadEffect, transform.position, Quaternion.identity);
         }
-        if (ResurrectionPoint != null)
-            transform.SetPositionAndRotation(ResurrectionPoint.transform.position, Quaternion.identity);
-        _rigidbody.gravityScale = 2;
+        
+        _rigidbody.gravityScale = 4;
         // Crountine
         yield return new WaitForSeconds(0.3f);
         if (LoadSceneTransition != null) {
@@ -67,10 +63,13 @@ public class PlayerUnit : MonoBehaviour
         if (LoadSceneTransition != null) {
             LoadSceneTransition.CanFade = true;
         }
-        Color unAlpha = new Color(0, 0, 0, 1);
+        Color unAlpha = new Color(1, 1, 1, 1);
+        // 状态重置
+        if (ResurrectionPoint != null)
+            transform.SetPositionAndRotation(ResurrectionPoint.transform.position, Quaternion.identity);
+        _controller.ResetStatus();
         sprite.color = unAlpha;
         isDead = false;
-        cameraFollow.IsFollowing = true;
         canCoroutine = true;
     }
 }

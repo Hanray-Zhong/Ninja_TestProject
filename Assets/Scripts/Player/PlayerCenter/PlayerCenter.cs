@@ -1,18 +1,18 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Cinemachine;
 
 public class PlayerCenter : MonoBehaviour
 {
-    private BoxCollider2D currentMap;
-    public BoxCollider2D CurrentMap {
-        get {return currentMap;}
-        set {currentMap = value;}
-    }
+    public CameraBounds currentMap;
 
     private void OnTriggerEnter2D(Collider2D other) {
         if (other.tag == "MapBounds") {
-            currentMap = other.gameObject.GetComponent<BoxCollider2D>();
+            if (currentMap != null && other.gameObject.name == currentMap.gameObject.name) return;
+            other.GetComponent<CameraBounds>().CinemachineInThisMap.SetActive(true);
+            currentMap.CinemachineInThisMap.SetActive(false);
+            currentMap = other.GetComponent<CameraBounds>();
         }
     }
 }
