@@ -1,18 +1,29 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Cinemachine;
 
-public class CinemachineActivitedMethod : MonoBehaviour
+public class CinemachineActivatedMethod : MonoBehaviour
 {
-    // Start is called before the first frame update
-    void Start()
-    {
-        
+    private CinemachineBrain cinemachineBrain;
+    private bool isPause = false;
+    private void Awake() {
+        cinemachineBrain = gameObject.GetComponent<CinemachineBrain>();
     }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
+    private void Update() {
+        if (isPause) {
+            if (cinemachineBrain.IsBlending) {
+                Time.timeScale = 0.05f;
+                Time.fixedDeltaTime = 0.02f * Time.timeScale;
+            }
+            else {
+                isPause = false;
+                Time.timeScale = 1f;
+                Time.fixedDeltaTime = 0.02f * Time.timeScale;
+            }
+        }
+    }
+    public void ChangeCinemachineEvent() {
+        isPause = true;
     }
 }

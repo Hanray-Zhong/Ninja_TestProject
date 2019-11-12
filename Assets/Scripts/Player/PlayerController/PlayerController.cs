@@ -201,10 +201,10 @@ public class PlayerController : MonoBehaviour {
             allowThrow = false;
     }
     private void CheckCubeCD() {
-        Color black = new Color(0, 0, 0, 1f);
+        Color Transparent = new Color(1, 1, 1, 0.5f);
         Color white = new Color(1, 1, 1, 1f);
         if (CubeCDTimer < 150) {
-            sprite.color = black;
+            sprite.color = Transparent;
         }
         else {
             sprite.color = white;

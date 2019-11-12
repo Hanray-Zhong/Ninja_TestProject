@@ -22,6 +22,7 @@ public class PlayerAnimController : MonoBehaviour
         animatorStateInfo = PlayerAnimator.GetCurrentAnimatorStateInfo(0);
 
         this.CheckFaceDir();
+        if (this.PlayOnHookAnim()) return;
         if (this.PlayJumpAnim()) return;
         this.PlayMoveAnim();
     }
@@ -31,12 +32,22 @@ public class PlayerAnimController : MonoBehaviour
         else spriteRenderer.flipX = false;
     }
     private void PlayMoveAnim() {
-        if (playerController.MoveDir != Vector2.zero) {
+        if (playerController.MoveDir.x != 0) {
             PlayerAnimator.SetBool("IsMoving", true);
         }
         else {
             PlayerAnimator.SetBool("IsMoving", false);
         }
+    }
+    private bool PlayOnHookAnim() {
+        if (playerController.onHook) {
+            PlayerAnimator.SetBool("OnHook", true);
+            if (!animatorStateInfo.IsName("OnHook")) {
+                PlayerAnimator.Play("OnHook");
+            }
+            return true;
+        }
+        return false;
     }
     private bool PlayJumpAnim() {
         if (!playerController.OnGround) {

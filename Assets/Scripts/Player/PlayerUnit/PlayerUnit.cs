@@ -31,18 +31,26 @@ public class PlayerUnit : MonoBehaviour
     }
 
     private void Update() {
+        SetDeathStatus();
+        RecoverTimeScale();
+    }
+    private void SetDeathStatus() {
         if (isDead && canCoroutine) {
+            // 不可操作
+            _controller.enabled = false;
             // 透明
             Color alpha = new Color(1, 1, 1, 0);
             sprite.color = alpha;
             // 物理清零
             _rigidbody.gravityScale = 0;
             _rigidbody.velocity = Vector2.zero;
-            
+
 
             StartCoroutine(Resurrection());
             canCoroutine = false;
         }
+    }
+    private void RecoverTimeScale() {
         if (isDead) {
             Time.timeScale = 1;
             Time.fixedDeltaTime = 0.02f * Time.timeScale;
@@ -52,14 +60,12 @@ public class PlayerUnit : MonoBehaviour
         if (DeadEffect != null) {
             Instantiate(DeadEffect, transform.position, Quaternion.identity);
         }
-        
-        _rigidbody.gravityScale = 4;
         // Crountine
         yield return new WaitForSeconds(0.3f);
         if (LoadSceneTransition != null) {
             LoadSceneTransition.CanFade = true;
         }
-        yield return new WaitForSeconds(1.2f);
+        yield return new WaitForSeconds(1.5f);
         if (LoadSceneTransition != null) {
             LoadSceneTransition.CanFade = true;
         }
@@ -67,8 +73,10 @@ public class PlayerUnit : MonoBehaviour
         // 状态重置
         if (ResurrectionPoint != null)
             transform.SetPositionAndRotation(ResurrectionPoint.transform.position, Quaternion.identity);
+        _rigidbody.gravityScale = 4;
         _controller.ResetStatus();
         sprite.color = unAlpha;
+        _controller.enabled = true;
         isDead = false;
         canCoroutine = true;
     }
