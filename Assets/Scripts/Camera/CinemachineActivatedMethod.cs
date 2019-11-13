@@ -5,6 +5,7 @@ using Cinemachine;
 
 public class CinemachineActivatedMethod : MonoBehaviour
 {
+    public PlayerController playerController;
     private CinemachineBrain cinemachineBrain;
     private bool isPause = false;
     private void Awake() {
@@ -17,6 +18,8 @@ public class CinemachineActivatedMethod : MonoBehaviour
                 Time.fixedDeltaTime = 0.02f * Time.timeScale;
             }
             else {
+                playerController.enabled = true;
+                playerController.ResetStatus();
                 isPause = false;
                 Time.timeScale = 1f;
                 Time.fixedDeltaTime = 0.02f * Time.timeScale;
@@ -25,5 +28,6 @@ public class CinemachineActivatedMethod : MonoBehaviour
     }
     public void ChangeCinemachineEvent() {
         isPause = true;
+        playerController.enabled = false;
     }
 }
