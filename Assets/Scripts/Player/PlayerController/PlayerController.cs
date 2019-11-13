@@ -340,6 +340,8 @@ public class PlayerController : MonoBehaviour {
         Bullet_Timer = 0;
         Hang_Time = 0;
         Hook_CD_Time = 150;
+        // lastThrowInteraction = 0;
+        // lastThrowInteraction = 0;
     }
     public void SwitchGameInput() {
         switch (dropdown.value) {

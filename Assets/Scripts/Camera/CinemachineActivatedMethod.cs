@@ -19,7 +19,6 @@ public class CinemachineActivatedMethod : MonoBehaviour
             }
             else {
                 playerController.enabled = true;
-                playerController.ResetStatus();
                 isPause = false;
                 Time.timeScale = 1f;
                 Time.fixedDeltaTime = 0.02f * Time.timeScale;
@@ -28,6 +27,7 @@ public class CinemachineActivatedMethod : MonoBehaviour
     }
     public void ChangeCinemachineEvent() {
         isPause = true;
+        playerController.ResetStatus();
         playerController.enabled = false;
     }
 }
