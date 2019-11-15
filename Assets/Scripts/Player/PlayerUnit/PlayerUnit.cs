@@ -10,7 +10,8 @@ public class PlayerUnit : MonoBehaviour
     public Transform ResurrectionPoint;
     [Header("Deadth")]
     public GameObject DeadEffect;
-
+    public bool IsOnSafeRegion = false;
+    [Header("UI")]
     public LoadingSceneTransition LoadSceneTransition;
 
     private bool isDead = false;
@@ -79,5 +80,11 @@ public class PlayerUnit : MonoBehaviour
         _controller.enabled = true;
         isDead = false;
         canCoroutine = true;
+    }
+    private void OnTriggerStay2D(Collider2D other) {
+        if (other.tag == "SafeRegion") IsOnSafeRegion = true;
+    }
+    private void OnTriggerExit2D(Collider2D other) {
+        if (other.tag == "SafeRegion") IsOnSafeRegion = false;
     }
 }

@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 242218993}
   - component: {fileID: 242218994}
   - component: {fileID: 242218995}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: FloatCube
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -94,7 +94,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   rotateSpeed: 150
-  playerController: {fileID: 3922431957880266798}
+  Player: {fileID: 3922431957880266792}
+  Margin: {x: 0, y: 0}
+  MoveSmoothing: {x: 4, y: 4}
+  targetPos: {x: 0, y: 0}
 --- !u!1 &3922431956027842537
 GameObject:
   m_ObjectHideFlags: 0
@@ -105,7 +108,7 @@ GameObject:
   m_Component:
   - component: {fileID: 3922431956027842539}
   - component: {fileID: 3922431956027842536}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: Rope
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -230,7 +233,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3922431956393790104}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: ThrowPos
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -260,7 +263,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3922431956945914924}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: Arrow
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -292,7 +295,7 @@ GameObject:
   m_Component:
   - component: {fileID: 3922431957208801880}
   - component: {fileID: 3922431957208801883}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: ArrowSprite
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -373,7 +376,7 @@ GameObject:
   - component: {fileID: 3922431957426039323}
   - component: {fileID: 3922431957426039325}
   - component: {fileID: 3922431957426039322}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: Center
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -444,6 +447,7 @@ GameObject:
   - component: {fileID: 3922431957880266796}
   - component: {fileID: 3922431957880266797}
   - component: {fileID: 3922431957880266794}
+  - component: {fileID: 768727105002420205}
   - component: {fileID: 3922431957880266795}
   - component: {fileID: 3922431957880266798}
   - component: {fileID: 3922431957880266799}
@@ -452,7 +456,7 @@ GameObject:
   - component: {fileID: 771325584}
   - component: {fileID: 771325585}
   - component: {fileID: 771325586}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: PlayerPrefab
   m_TagString: Player
   m_Icon: {fileID: 0}
@@ -468,7 +472,7 @@ Transform:
   m_GameObject: {fileID: 3922431957880266792}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: -10.19, y: 1.31, z: 0}
-  m_LocalScale: {x: 0.6, y: 0.6, z: 0.5}
+  m_LocalScale: {x: 0.9496845, y: 0.9486234, z: 0.88425}
   m_Children:
   - {fileID: 3922431957426039323}
   - {fileID: 3922431956393790104}
@@ -540,7 +544,7 @@ BoxCollider2D:
   m_IsTrigger: 0
   m_UsedByEffector: 0
   m_UsedByComposite: 0
-  m_Offset: {x: 0, y: -0.3}
+  m_Offset: {x: -0.05, y: -0.92}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.5, y: 0.5}
@@ -551,7 +555,33 @@ BoxCollider2D:
     adaptiveTiling: 0
   m_AutoTiling: 0
   serializedVersion: 2
-  m_Size: {x: 1.77, y: 2.95}
+  m_Size: {x: 1.74, y: 1.51}
+  m_EdgeRadius: 0
+--- !u!61 &768727105002420205
+BoxCollider2D:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3922431957880266792}
+  m_Enabled: 1
+  m_Density: 1
+  m_Material: {fileID: 0}
+  m_IsTrigger: 1
+  m_UsedByEffector: 0
+  m_UsedByComposite: 0
+  m_Offset: {x: 0, y: 0}
+  m_SpriteTilingProperty:
+    border: {x: 0, y: 0, z: 0, w: 0}
+    pivot: {x: 0.5, y: 0.5}
+    oldSize: {x: 5, y: 3.7}
+    newSize: {x: 2.77, y: 2.77}
+    adaptiveTilingThreshold: 0.5
+    drawMode: 0
+    adaptiveTiling: 0
+  m_AutoTiling: 0
+  serializedVersion: 2
+  m_Size: {x: 1.73, y: 2.89}
   m_EdgeRadius: 0
 --- !u!50 &3922431957880266795
 Rigidbody2D:
@@ -590,8 +620,8 @@ MonoBehaviour:
   dropdown: {fileID: 0}
   MoveSpeed: 10.5
   JumpForce: 18
-  distance_toGround: 1.15
-  x_offset: {x: 0.53, y: 0}
+  distance_toGround: 1.68
+  x_offset: {x: 0.7, y: 0}
   CubePrefab: {fileID: 8128444132521573636, guid: 02991bbb5acce11418a62f354475d4cd,
     type: 3}
   ThrowPos: {fileID: 3922431956393790104}
@@ -651,6 +681,7 @@ MonoBehaviour:
   - {fileID: 0}
   ResurrectionPoint: {fileID: 0}
   DeadEffect: {fileID: 1615402597081308, guid: f73cdc16e4ef44149b9dc3c868bfc24f, type: 3}
+  IsOnSafeRegion: 0
   LoadSceneTransition: {fileID: 0}
 --- !u!95 &771325584
 Animator:
@@ -702,7 +733,7 @@ TrailRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 10754, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 10301, guid: 0000000000000000f000000000000000, type: 0}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -723,7 +754,7 @@ TrailRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Time: 0.5
+  m_Time: 0.05
   m_Parameters:
     serializedVersion: 3
     widthMultiplier: 1
@@ -741,7 +772,7 @@ TrailRenderer:
         outWeight: 0.33333334
       - serializedVersion: 3
         time: 1
-        value: 0.22115326
+        value: 1
         inSlope: 0
         outSlope: 0
         tangentMode: 0
@@ -753,7 +784,7 @@ TrailRenderer:
       m_RotationOrder: 4
     colorGradient:
       serializedVersion: 2
-      key0: {r: 0, g: 0.6845894, b: 1, a: 0.7058824}
+      key0: {r: 0, g: 0.6845894, b: 1, a: 1}
       key1: {r: 1, g: 1, b: 1, a: 0}
       key2: {r: 0, g: 0, b: 0, a: 0}
       key3: {r: 0, g: 0, b: 0, a: 0}
