@@ -19,6 +19,7 @@ public class PlayerUnit : MonoBehaviour
     private SpriteRenderer sprite;
     private Rigidbody2D _rigidbody;
     private PlayerController _controller;
+    private float oriGravityScale;
 
     public bool IsDead {
         get {return this.isDead;}
@@ -29,6 +30,7 @@ public class PlayerUnit : MonoBehaviour
         sprite = GetComponent<SpriteRenderer>();
         _rigidbody = GetComponent<Rigidbody2D>();
         _controller = GetComponent<PlayerController>();
+        oriGravityScale = _rigidbody.gravityScale;
     }
 
     private void Update() {
@@ -74,7 +76,7 @@ public class PlayerUnit : MonoBehaviour
         // 状态重置
         if (ResurrectionPoint != null)
             transform.SetPositionAndRotation(ResurrectionPoint.transform.position, Quaternion.identity);
-        _rigidbody.gravityScale = 4;
+        _rigidbody.gravityScale = oriGravityScale;
         _controller.ResetStatus();
         sprite.color = unAlpha;
         _controller.enabled = true;
