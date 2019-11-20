@@ -94,8 +94,10 @@ public class PlayerController : MonoBehaviour {
             Rope.positionCount = 2;
     }
     private void Update() {
-        if (_unit.IsDead) return;
+        // if (_unit.IsDead) return;
         this.GetMoveDir();
+    }
+    private void LateUpdate() {
         this.Move();
         this.Jump();
         this.CheckCubeCD();
@@ -340,6 +342,7 @@ public class PlayerController : MonoBehaviour {
         Bullet_Timer = 0;
         Hang_Time = 0;
         Hook_CD_Time = 150;
+        onHook = false;
         // lastThrowInteraction = 0;
         // lastThrowInteraction = 0;
     }
