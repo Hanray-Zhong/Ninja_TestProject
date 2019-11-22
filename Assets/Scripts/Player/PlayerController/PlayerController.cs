@@ -26,6 +26,7 @@ public class PlayerController : MonoBehaviour {
     public GameObject FlashEffect;
     public TrailRenderer trailRenderer;
     [Header("Hook")]
+    public GameObject hookPrefab;
     public bool onHook;
     public float HookCircleRadius;
     public float SwingForce;
@@ -34,7 +35,6 @@ public class PlayerController : MonoBehaviour {
     [Range(0, 150)]
     public float Hook_CD_Time = 150;
     public float ClimbSpeed;
-    public LineRenderer Rope;
     public float Max_RopeLength;
     public float Min_RopeLength;
     
@@ -76,6 +76,7 @@ public class PlayerController : MonoBehaviour {
     [Header("hook")]
     private float nearestDistance;
     private GameObject nearestHook = null;
+    private GameObject currentHook;
     private Vector2 velocity_beforeHook;
     private bool justHook = false;
     private float lastHookInteraction = 0;
@@ -90,8 +91,6 @@ public class PlayerController : MonoBehaviour {
         _transform = gameObject.GetComponent<Transform>();
         _unit = gameObject.GetComponent<PlayerUnit>();
         sprite = gameObject.GetComponent<SpriteRenderer>();
-        if (Rope != null)
-            Rope.positionCount = 2;
     }
     private void Update() {
         // if (_unit.IsDead) return;
@@ -264,8 +263,6 @@ public class PlayerController : MonoBehaviour {
         nearestDistance = HookCircleRadius;
         if (Hook_CD_Time < 150)
             Hook_CD_Time++;
-        if (!onHook && Rope != null)
-            Rope.gameObject.SetActive(false);
         if (!onGround && !onHook && Hook_CD_Time >= 150) {
             if (nearestHook != null) {
                 float Distance_nearestHook_Player = Vector2.Distance(nearestHook.transform.position, transform.position);
@@ -291,26 +288,23 @@ public class PlayerController : MonoBehaviour {
                     secJump = true;
                     velocity_beforeHook = _rigidbody.velocity;
                     justHook = true;
-                    nearestHook.GetComponent<HingeJoint2D>().connectedBody = _rigidbody;
+                    // nearestHook.GetComponent<HingeJoint2D>().connectedBody = _rigidbody;
+                    Vector2 destination = nearestHook.transform.position;
+				    currentHook = (GameObject)Instantiate (hookPrefab, transform.position, Quaternion.identity);
+				    currentHook.GetComponent<Rope>().player = gameObject;
+				    currentHook.GetComponent<Rope>().destination = destination;
                 }
             }
         }
-        // 松开钩子情况 ：
-        // 	松开”B”键
-        // 	双脚落地
-        // 	跳跃
-        // 	瞬移
-        // 	与另一个飞镖连接   ?????
-        // 	连接时间到达5s（这种情况下断开后绳子会进入冷却，3s内不能再次使用）
         if (onHook && nearestHook != null) {
             Hang_Time++;
-            // 上下攀爬
-            Vector2 player_hook_dir = nearestHook.transform.position - transform.position;
-            if (moveDir.y > 0 && transform.position.y < nearestHook.transform.position.y && player_hook_dir.magnitude > Min_RopeLength) 
-                transform.Translate(player_hook_dir * ClimbSpeed * Time.deltaTime);
-            if (moveDir.y < 0 && transform.position.y < nearestHook.transform.position.y && player_hook_dir.magnitude < Max_RopeLength) 
-                transform.Translate(-player_hook_dir * ClimbSpeed * Time.deltaTime);
-            // 左右晃动
+            // // 上下攀爬
+            // Vector2 player_hook_dir = nearestHook.transform.position - transform.position;
+            // if (moveDir.y > 0 && transform.position.y < nearestHook.transform.position.y && player_hook_dir.magnitude > Min_RopeLength) 
+            //     transform.Translate(player_hook_dir * ClimbSpeed * Time.deltaTime);
+            // if (moveDir.y < 0 && transform.position.y < nearestHook.transform.position.y && player_hook_dir.magnitude < Max_RopeLength) 
+            //     transform.Translate(-player_hook_dir * ClimbSpeed * Time.deltaTime);
+            // // 左右晃动
             if (transform.position.y < nearestHook.transform.position.y) {
                 Vector2 swingDir = new Vector2(moveDir.x, 0);
                 _rigidbody.AddForce(swingDir * SwingForce * Time.deltaTime, ForceMode2D.Force);
@@ -318,21 +312,15 @@ public class PlayerController : MonoBehaviour {
             // 断开连接 (跳跃断开判定有点奇怪)
             if (delta_HookInteraction < 0 || onGround || !secJump || this.Flash()) {
                 onHook = false;
-                nearestHook.GetComponent<HingeJoint2D>().connectedBody = null;
+                Destroy (currentHook);
                 Hang_Time = 0;
             }
             if (Hang_Time >= 250) {
                 onHook = false;
-                nearestHook.GetComponent<HingeJoint2D>().connectedBody = null;
+                Destroy (currentHook);
                 Hang_Time = 0;
                 Hook_CD_Time = 0;
             }
-        }
-        if (onHook && nearestHook != null && Rope != null) {
-            // 可视化Rope
-            Rope.gameObject.SetActive(true);
-            Rope.SetPosition(0, transform.position);
-            Rope.SetPosition(1, nearestHook.transform.position);
         }
         lastHookInteraction = PlayerGameInput.GetHookInteraction();
     }
