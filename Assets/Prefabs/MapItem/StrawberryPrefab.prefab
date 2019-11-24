@@ -125,3 +125,4 @@ MonoBehaviour:
   y_offset: 2
   DisappearEffect: {fileID: 102780720779604424, guid: 1e7a7ac9fcde09144b36fc122493f0e5,
     type: 3}
+  originPos: {x: 0, y: 0}
