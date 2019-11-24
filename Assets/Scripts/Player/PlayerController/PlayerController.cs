@@ -45,7 +45,7 @@ public class PlayerController : MonoBehaviour {
     public Vector2 MoveDir {
         get {return moveDir;}
     }
-    private bool faceRight;
+    private bool faceRight = true;
     public bool FaceRight {
         get {return this.faceRight;}
     }
