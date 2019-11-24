@@ -4,9 +4,15 @@ using UnityEngine;
 
 public class Father : MonoBehaviour
 {
-    public static int number = 1;
+    // Start is called before the first frame update
+    void Start()
+    {
+        
+    }
 
-    public void Print(string text) {
-        Debug.Log(text);
+    // Update is called once per frame
+    void Update()
+    {
+        
     }
 }
