@@ -142,7 +142,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4d58aad9b09ea4448a8c0d09a964d514, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  ActiveTime: 0.25
+  ActiveTime: 0.2
   rotateSpeed: 300
   Player: {fileID: 0}
   HitGround: 0
