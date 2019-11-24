@@ -25,7 +25,7 @@ public class FloatBlock : MonoBehaviour
     private void Update() {
         if (!playerUnit.IsDead) canInvoke = true;
         if (playerUnit.IsDead && canInvoke) {
-            Invoke("SetOringinPos", 1.5f);
+            Invoke("SetOringinPos", 2f);
             canInvoke = false;
         }
         IsOnGround();
@@ -49,7 +49,8 @@ public class FloatBlock : MonoBehaviour
     }
     private void OnTriggerEnter2D(Collider2D other) {
         if (other.tag == "Player") {
-            _rigidbody2D.velocity = new Vector2(0, -DownSpeed);
+            if (!other.GetComponent<PlayerUnit>().IsDead)
+                _rigidbody2D.velocity = new Vector2(0, -DownSpeed);
         }
     }
     private void SetOringinPos() {

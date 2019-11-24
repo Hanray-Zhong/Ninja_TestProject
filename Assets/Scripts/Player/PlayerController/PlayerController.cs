@@ -23,6 +23,7 @@ public class PlayerController : MonoBehaviour {
     public float CubeCDTimer = 0;
     [Range(0, 150)]
     public float Bullet_Timer = 0;
+    public bool onBulletTime = false;
     public GameObject FlashEffect;
     public TrailRenderer trailRenderer;
     [Header("Hook")]
@@ -50,6 +51,8 @@ public class PlayerController : MonoBehaviour {
     }
     [Header("jump")]
     private bool onGround;
+    private float delta_JumpInteraction;
+    private float lastJumpInteraction = 0;
     public bool OnGround {
         get {return onGround;}
     }
@@ -139,18 +142,24 @@ public class PlayerController : MonoBehaviour {
         // if (jumpInteract > 0) {
         //     _rigidbody.AddForce(Vector2.up * JumpForce, ForceMode2D.Impulse);
         // }
+        delta_JumpInteraction = PlayerGameInput.GetJumpInteraction() - lastJumpInteraction;
         IsOnGround();
         if (onGround) 
             allowJump = true;
         else
             allowJump = false;
-        if (PlayerGameInput.GetJumpInteraction() == 1 && (allowJump || secJump)) {
+        if (delta_JumpInteraction > 0 && (allowJump || secJump)) {
             _rigidbody.velocity = new Vector2(_rigidbody.velocity.x, 0);
             _rigidbody.AddForce(Vector2.up * JumpForce, ForceMode2D.Impulse);
+
+            Debug.Log("Jump!");
+
             allowJump = false;
             secJump = false;
+            lastJumpInteraction = PlayerGameInput.GetJumpInteraction();
             return true;
         }
+        lastJumpInteraction = PlayerGameInput.GetJumpInteraction();
         return false;
     }
     private void IsOnGround() {
@@ -163,6 +172,7 @@ public class PlayerController : MonoBehaviour {
         if (PlayerGameInput.GetThrowInteraction() == 1 && allowThrow) {
             Time.timeScale = 0.1f;
             Time.fixedDeltaTime = 0.02f * Time.timeScale;
+            onBulletTime = true;
             Bullet_Timer++;
             Arrow.SetActive(true);
             if (moveDir != Vector2.zero)
@@ -190,6 +200,7 @@ public class PlayerController : MonoBehaviour {
             Arrow.SetActive(false);
             Time.timeScale = 1;
             Time.fixedDeltaTime = 0.02f * Time.timeScale;
+            onBulletTime = false;
         }
         lastThrowInteraction = PlayerGameInput.GetThrowInteraction();
     }

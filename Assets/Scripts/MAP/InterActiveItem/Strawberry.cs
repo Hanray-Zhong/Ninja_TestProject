@@ -11,9 +11,10 @@ public class Strawberry : InterActiveItem
     private bool IsFollowingPlayer;
     private GameObject target;
     private Vector2 targetPos;
-    private Vector2 originPos;
+    public Vector2 originPos;
     private void Start() {
         originPos = new Vector2(transform.position.x, transform.position.y);
+        targetPos = originPos;
     }
     private void Update() {
         if (IsFollowingPlayer && target != null) {
@@ -29,8 +30,8 @@ public class Strawberry : InterActiveItem
                 target = null;
             }
         } 
-        
         SmoothlyFollow(targetPos, Margin, MoveSmoothing);
+        
     }
     private void OnTriggerEnter2D(Collider2D other) {
         if (other.tag == "Player") {

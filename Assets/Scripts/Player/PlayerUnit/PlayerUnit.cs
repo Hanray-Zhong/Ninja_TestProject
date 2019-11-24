@@ -74,9 +74,10 @@ public class PlayerUnit : MonoBehaviour
         }
         Color unAlpha = new Color(1, 1, 1, 1);
         // 状态重置
-        if (ResurrectionPoint != null)
-            transform.SetPositionAndRotation(ResurrectionPoint.transform.position, Quaternion.identity);
+         if (ResurrectionPoint != null)
+            transform.position = (Vector2)ResurrectionPoint.transform.position + new Vector2(0, 1);
         _rigidbody.gravityScale = oriGravityScale;
+        _rigidbody.velocity = Vector2.zero;
         _controller.ResetStatus();
         sprite.color = unAlpha;
         _controller.enabled = true;

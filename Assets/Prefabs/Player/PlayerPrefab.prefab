@@ -320,8 +320,7 @@ GameObject:
   m_Component:
   - component: {fileID: 3922431957880266796}
   - component: {fileID: 3922431957880266797}
-  - component: {fileID: 3922431957880266794}
-  - component: {fileID: 768727105002420205}
+  - component: {fileID: 5919052077054755649}
   - component: {fileID: 3922431957880266795}
   - component: {fileID: 3922431957880266798}
   - component: {fileID: 3922431957880266799}
@@ -330,6 +329,7 @@ GameObject:
   - component: {fileID: 771325584}
   - component: {fileID: 771325585}
   - component: {fileID: 771325586}
+  - component: {fileID: 4328757769702362799}
   m_Layer: 11
   m_Name: PlayerPrefab
   m_TagString: Player
@@ -404,7 +404,7 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
---- !u!61 &3922431957880266794
+--- !u!61 &5919052077054755649
 BoxCollider2D:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -417,7 +417,7 @@ BoxCollider2D:
   m_IsTrigger: 0
   m_UsedByEffector: 0
   m_UsedByComposite: 0
-  m_Offset: {x: -0.05, y: -0.92}
+  m_Offset: {x: 0, y: -0.7856581}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.5, y: 0.5}
@@ -428,33 +428,7 @@ BoxCollider2D:
     adaptiveTiling: 0
   m_AutoTiling: 0
   serializedVersion: 2
-  m_Size: {x: 1.74, y: 1.51}
-  m_EdgeRadius: 0
---- !u!61 &768727105002420205
-BoxCollider2D:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3922431957880266792}
-  m_Enabled: 1
-  m_Density: 1
-  m_Material: {fileID: 0}
-  m_IsTrigger: 1
-  m_UsedByEffector: 0
-  m_UsedByComposite: 0
-  m_Offset: {x: 0, y: 0}
-  m_SpriteTilingProperty:
-    border: {x: 0, y: 0, z: 0, w: 0}
-    pivot: {x: 0.5, y: 0.5}
-    oldSize: {x: 5, y: 3.7}
-    newSize: {x: 2.77, y: 2.77}
-    adaptiveTilingThreshold: 0.5
-    drawMode: 0
-    adaptiveTiling: 0
-  m_AutoTiling: 0
-  serializedVersion: 2
-  m_Size: {x: 1.73, y: 2.89}
+  m_Size: {x: 1.1120131, y: 1.8329494}
   m_EdgeRadius: 0
 --- !u!50 &3922431957880266795
 Rigidbody2D:
@@ -471,7 +445,7 @@ Rigidbody2D:
   m_Mass: 1
   m_LinearDrag: 0
   m_AngularDrag: 0
-  m_GravityScale: 4
+  m_GravityScale: 6
   m_Material: {fileID: 6200000, guid: b093c6311c8011d44933c8e2eac68928, type: 2}
   m_Interpolate: 0
   m_SleepingMode: 1
@@ -491,14 +465,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   PlayerGameInput: {fileID: 3922431957880266799}
   dropdown: {fileID: 0}
-  MoveSpeed: 10.5
-  JumpForce: 18
-  distance_toGround: 1.68
-  x_offset: {x: 0.7, y: 0}
+  MoveSpeed: 10
+  JumpForce: 28
+  distance_toGround: 1.74
+  x_offset: {x: 0.531, y: 0}
   CubePrefab: {fileID: 8128444132521573636, guid: 02991bbb5acce11418a62f354475d4cd,
     type: 3}
   ThrowPos: {fileID: 3922431956393790104}
-  ThrowForce: 35
+  ThrowForce: 50
   Arrow: {fileID: 3922431956945914925}
   CubeCDTimer: 150
   Bullet_Timer: 0
@@ -694,3 +668,19 @@ TrailRenderer:
   m_MinVertexDistance: 0.1
   m_Autodestruct: 0
   m_Emitting: 0
+--- !u!58 &4328757769702362799
+CircleCollider2D:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3922431957880266792}
+  m_Enabled: 1
+  m_Density: 1
+  m_Material: {fileID: 0}
+  m_IsTrigger: 1
+  m_UsedByEffector: 0
+  m_UsedByComposite: 0
+  m_Offset: {x: 0.000000062762574, y: -1.18}
+  serializedVersion: 2
+  m_Radius: 0.5190685

@@ -47,6 +47,7 @@ public class PlayerAnimController : MonoBehaviour
             }
             return true;
         }
+        else PlayerAnimator.SetBool("OnHook", false);
         return false;
     }
     private bool PlayJumpAnim() {
