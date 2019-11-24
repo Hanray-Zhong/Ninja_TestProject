@@ -1,8 +1,0 @@
-hello world
-<<<<<<< HEAD
-hello world
-=======
-
-
-hello world，develop
->>>>>>> b76368dc8bddb1d8f744171a008b8b574423eeca
