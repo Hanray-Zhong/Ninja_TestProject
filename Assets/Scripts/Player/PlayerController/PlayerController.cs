@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 
 public class PlayerController : MonoBehaviour {
+    public bool isControlled = true;
     [Header("Game Input")]
     public GameInput PlayerGameInput;
     public Dropdown dropdown;
@@ -38,7 +39,8 @@ public class PlayerController : MonoBehaviour {
     public float ClimbSpeed;
     public float Max_RopeLength;
     public float Min_RopeLength;
-    
+    // Ability Allowance
+    public bool allowLink { get; set; }
 
     [Header("move")]
     private Vector2 moveDir;
@@ -97,15 +99,23 @@ public class PlayerController : MonoBehaviour {
     }
     private void Update() {
         // if (_unit.IsDead) return;
-        this.GetMoveDir();
+        if (isControlled)
+            this.GetMoveDir();
     }
     private void LateUpdate() {
+        if (!isControlled) {
+            _rigidbody.velocity = new Vector2(0, _rigidbody.velocity.y);
+            ResetStatus();
+            IsOnGround();
+            return;
+        }
         this.Move();
         this.Jump();
         this.CheckCubeCD();
         this.ThrowCube();
         this.Flash();
-        this.GetHook();
+        if (allowLink)
+            this.GetHook();
     }
     private void FixedUpdate() {
         this.CubeTimer();
@@ -337,11 +347,15 @@ public class PlayerController : MonoBehaviour {
     }
     
     public void ResetStatus() {
+        moveDir = Vector2.zero;
         CubeCDTimer = 150;
         Bullet_Timer = 0;
         Hang_Time = 0;
         Hook_CD_Time = 150;
         onHook = false;
+        delta_HookInteraction = 0;
+        delta_ThrowInteraction = 0;
+        delta_JumpInteraction = 0;
         // lastThrowInteraction = 0;
         // lastThrowInteraction = 0;
     }

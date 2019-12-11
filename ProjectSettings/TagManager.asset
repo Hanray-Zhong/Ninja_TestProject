@@ -10,6 +10,7 @@ TagManager:
   - MapBounds
   - InterActiveItem
   - SafeRegion
+  - Dialogue
   layers:
   - Default
   - TransparentFX
