@@ -18,7 +18,9 @@ public class EventController : MonoBehaviour
             Debug.LogError("EventController : DialogueController is null.");
         }
     }
+    // dialogue event
     public void StartDialogueEvent(GameObject dialogue, UnityEvent currentEndEvent) {
+        if (dialogueController.gameObject.activeSelf == true) return;
         Player.GetComponent<PlayerController>().isControlled = false;
         dialogueController.gameObject.SetActive(true);
         dialogueController.SetTextsActive(dialogue);
@@ -29,6 +31,7 @@ public class EventController : MonoBehaviour
     }
     private void SetPlayerActive() {
         Player.GetComponent<PlayerController>().isControlled = true;
-        currentEndEvent.Invoke();
+        if (currentEndEvent != null)
+            currentEndEvent.Invoke();
     }
 }

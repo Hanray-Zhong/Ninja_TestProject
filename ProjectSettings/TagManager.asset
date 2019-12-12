@@ -11,6 +11,7 @@ TagManager:
   - InterActiveItem
   - SafeRegion
   - Dialogue
+  - NPC
   layers:
   - Default
   - TransparentFX

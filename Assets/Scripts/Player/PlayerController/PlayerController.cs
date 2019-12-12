@@ -2,10 +2,13 @@ using UnityEngine;
 using UnityEngine.UI;
 
 public class PlayerController : MonoBehaviour {
+
     public bool isControlled = true;
+
     [Header("Game Input")]
     public GameInput PlayerGameInput;
     public Dropdown dropdown;
+
     [Header("Move")]
     public float MoveSpeed;
     private float normalSpeed;
@@ -15,6 +18,7 @@ public class PlayerController : MonoBehaviour {
     public float JumpForce;
     public float distance_toGround;
     public Vector2 x_offset;
+
     [Header("Throw Cube")]
     public GameObject CubePrefab;
     public Transform ThrowPos;
@@ -27,8 +31,9 @@ public class PlayerController : MonoBehaviour {
     public bool onBulletTime = false;
     public GameObject FlashEffect;
     public TrailRenderer trailRenderer;
+
     [Header("Hook")]
-    public GameObject hookPrefab;
+    // public GameObject hookPrefab;
     public bool onHook;
     public float HookCircleRadius;
     public float SwingForce;
@@ -39,6 +44,7 @@ public class PlayerController : MonoBehaviour {
     public float ClimbSpeed;
     public float Max_RopeLength;
     public float Min_RopeLength;
+    public LineRenderer Rope;
     // Ability Allowance
     public bool allowLink { get; set; }
 
@@ -50,6 +56,7 @@ public class PlayerController : MonoBehaviour {
     private bool faceRight = true;
     public bool FaceRight {
         get {return this.faceRight;}
+        set { this.faceRight = value; }
     }
     [Header("jump")]
     private bool onGround;
@@ -76,8 +83,10 @@ public class PlayerController : MonoBehaviour {
     private float lastThrowInteraction = 0;
     private float delta_ThrowInteraction;
     private SpriteRenderer sprite;
+
     [Header("flash")]
     private bool FlashOver = true;
+
     [Header("hook")]
     private float nearestDistance;
     private GameObject nearestHook = null;
@@ -86,6 +95,7 @@ public class PlayerController : MonoBehaviour {
     private bool justHook = false;
     private float lastHookInteraction = 0;
     private float delta_HookInteraction; 
+
     // Component
     private Rigidbody2D _rigidbody;
     private Transform _transform;
@@ -162,7 +172,7 @@ public class PlayerController : MonoBehaviour {
             _rigidbody.velocity = new Vector2(_rigidbody.velocity.x, 0);
             _rigidbody.AddForce(Vector2.up * JumpForce, ForceMode2D.Impulse);
 
-            Debug.Log("Jump!");
+            // Debug.Log("Jump!");
 
             allowJump = false;
             secJump = false;
@@ -284,16 +294,19 @@ public class PlayerController : MonoBehaviour {
         nearestDistance = HookCircleRadius;
         if (Hook_CD_Time < 150)
             Hook_CD_Time++;
+        if (!onHook)
+            Rope.gameObject.SetActive(false);
         if (!onGround && !onHook && Hook_CD_Time >= 150) {
             if (nearestHook != null) {
                 float Distance_nearestHook_Player = Vector2.Distance(nearestHook.transform.position, transform.position);
                 if (Distance_nearestHook_Player > HookCircleRadius)
                     nearestHook = null;
             }
+            nearestHook = null;
             Collider2D[] cols = Physics2D.OverlapCircleAll(transform.position, HookCircleRadius, 1 << LayerMask.NameToLayer("Hook"));
             if (cols.Length != 0) {
                 foreach (var col in cols) {
-                    if ((faceRight && col.gameObject.transform.position.x < _transform.position.x) || (!faceRight && col.gameObject.transform.position.x > _transform.position.x))
+                    if ((faceRight && col.gameObject.transform.position.x < _transform.position.x) || (!faceRight && col.gameObject.transform.position.x > _transform.position.x) || (col.gameObject.transform.position.y <= _transform.position.y))
                         continue;
                     float currentDistance = Vector2.Distance(col.gameObject.transform.position, transform.position);
                     if (nearestDistance > currentDistance) {
@@ -309,22 +322,22 @@ public class PlayerController : MonoBehaviour {
                     secJump = true;
                     velocity_beforeHook = _rigidbody.velocity;
                     justHook = true;
-                    // nearestHook.GetComponent<HingeJoint2D>().connectedBody = _rigidbody;
-                    Vector2 destination = nearestHook.transform.position;
+                    nearestHook.GetComponent<HingeJoint2D>().connectedBody = _rigidbody;
+                    /*Vector2 destination = nearestHook.transform.position;
 				    currentHook = (GameObject)Instantiate (hookPrefab, transform.position, Quaternion.identity);
 				    currentHook.GetComponent<Rope>().player = gameObject;
-				    currentHook.GetComponent<Rope>().destination = destination;
+				    currentHook.GetComponent<Rope>().destination = destination;*/
                 }
             }
         }
         if (onHook && nearestHook != null) {
             Hang_Time++;
             // // 上下攀爬
-            // Vector2 player_hook_dir = nearestHook.transform.position - transform.position;
-            // if (moveDir.y > 0 && transform.position.y < nearestHook.transform.position.y && player_hook_dir.magnitude > Min_RopeLength) 
-            //     transform.Translate(player_hook_dir * ClimbSpeed * Time.deltaTime);
-            // if (moveDir.y < 0 && transform.position.y < nearestHook.transform.position.y && player_hook_dir.magnitude < Max_RopeLength) 
-            //     transform.Translate(-player_hook_dir * ClimbSpeed * Time.deltaTime);
+            Vector2 player_hook_dir = nearestHook.transform.position - transform.position;
+            if (moveDir.y > 0 && transform.position.y < nearestHook.transform.position.y && player_hook_dir.magnitude > Min_RopeLength) 
+                transform.Translate(player_hook_dir * ClimbSpeed * Time.deltaTime);
+            if (moveDir.y < 0 && transform.position.y < nearestHook.transform.position.y && player_hook_dir.magnitude < Max_RopeLength) 
+                transform.Translate(-player_hook_dir * ClimbSpeed * Time.deltaTime);
             // // 左右晃动
             if (transform.position.y < nearestHook.transform.position.y) {
                 Vector2 swingDir = new Vector2(moveDir.x, 0);
@@ -333,15 +346,25 @@ public class PlayerController : MonoBehaviour {
             // 断开连接 (跳跃断开判定有点奇怪)
             if (delta_HookInteraction < 0 || onGround || !secJump || this.Flash()) {
                 onHook = false;
-                Destroy (currentHook);
+                nearestHook.GetComponent<HingeJoint2D>().connectedBody = null;
+                // Destroy (currentHook);
                 Hang_Time = 0;
+                nearestHook = null;
             }
             if (Hang_Time >= 250) {
                 onHook = false;
-                Destroy (currentHook);
+                nearestHook.GetComponent<HingeJoint2D>().connectedBody = null;
+                // Destroy (currentHook);
                 Hang_Time = 0;
                 Hook_CD_Time = 0;
+                nearestHook = null;
             }
+        }
+        if (onHook && nearestHook != null) {
+            // 可视化Rope
+            Rope.gameObject.SetActive(true);
+            Rope.SetPosition(0, transform.position);
+            Rope.SetPosition(1, nearestHook.transform.position);
         }
         lastHookInteraction = PlayerGameInput.GetHookInteraction();
     }

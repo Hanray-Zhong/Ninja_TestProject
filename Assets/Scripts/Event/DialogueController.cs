@@ -8,18 +8,21 @@ public class DialogueController : MonoBehaviour
     public EventController eventController;
     [Header("Game Input")]
     public GameInput PlayerGameInput;
+
     private float delta_JumpInteraction;
     private float lastJumpInteraction;
-    private float inputBuffer = 5;
+    private float inputBuffer = 10;
 
     private List<GameObject> texts = new List<GameObject>();
     private int currentTextIndex;
     private GameObject currentDIalogue;
     private void Update() {
         delta_JumpInteraction = PlayerGameInput.GetJumpInteraction() - lastJumpInteraction;
-        if (delta_JumpInteraction > 0 && inputBuffer >= 5) {
+        lastJumpInteraction = PlayerGameInput.GetJumpInteraction();
+        if (delta_JumpInteraction > 0 && inputBuffer >= 10) {
             if (currentTextIndex == texts.Count - 1) {
                 currentDIalogue.SetActive(false);
+                texts.RemoveAll(it => it is GameObject);
                 eventController.DialogueEnd();
                 gameObject.SetActive(false);
                 return;
