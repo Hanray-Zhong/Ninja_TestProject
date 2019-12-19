@@ -1,7 +1,13 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using System;
+using UnityEngine.Events;
+
+public enum TargetEventTypes {
+    Dialogue,
+    NPC_Dialogue,
+}
+
 
 [System.Serializable]
 public class MyEvent : MonoBehaviour
@@ -15,49 +21,33 @@ public class MyEvent : MonoBehaviour
     // Data
     [Header("Player")]
     public GameInput PlayerGameInput;
-    private float delta_JumpInteraction;
+    private float delta_JumpInteraction;// event interaction
     private float lastJumpInteraction;
-    private float inputBuffer = 10;
+    private float inputBuffer = 0;
     public PlayerController playerController;
-    
+
     [Header("Condition-Enemy Disappear")]
     public EnemyGrounps[] enemyGrounps;
-    public NPCEventTrigger[] NPCEventTriggers;
-    public float dialogueRange;
+    public NPCEvent[] NPCs;
+
+    [Header("Dialogue")]
+    public DialogueController dialogueController;
 
     // Event
     public void LinkActive() {
         Debug.Log("link active");
         playerController.allowLink = true;
     }
-
     public void Condition_EnemyDisappear(int index) {
         for (int i = 0; i < enemyGrounps[index].enemies.Length; i++) {
             if (enemyGrounps[index].enemies[i].activeSelf) return;
         }
-        // Debug.Log("enemy done");
-        delta_JumpInteraction = PlayerGameInput.GetJumpInteraction() - lastJumpInteraction;
-        lastJumpInteraction = PlayerGameInput.GetJumpInteraction();
-        float distanc2player = Vector2.Distance(NPCEventTriggers[index].gameObject.transform.position, playerController.gameObject.transform.position);
-        if (delta_JumpInteraction > 0 && inputBuffer >= 10 && distanc2player <= dialogueRange) {
-            Debug.Log("Get input");
-            if (playerController.gameObject.transform.position.x >= NPCEventTriggers[index].gameObject.transform.position.x) {
-                playerController.FaceRight = false;
-                NPCEventTriggers[index].gameObject.GetComponent<SpriteRenderer>().flipX = false;
-            }
-            else {
-                playerController.FaceRight = true;
-                NPCEventTriggers[index].gameObject.GetComponent<SpriteRenderer>().flipX = true;
-            }
-            NPCEventTriggers[index].isMeetCondition = true;
-        }
-        inputBuffer++;
+        NPCs[index].isMeetCondition = true;
     }
-
-    private void OnDrawGizmosSelected() {
-        Gizmos.color = new Color(1, 0, 0);
-        foreach (NPCEventTrigger NPCEventTrigger in NPCEventTriggers) {
-            Gizmos.DrawWireSphere(NPCEventTrigger.gameObject.transform.position, dialogueRange);
-        }
+    public void DialogueEvent(GameObject dialogue, UnityEvent EndEvent) {
+        if (dialogueController.gameObject.activeSelf == true) return;
+        playerController.isControlled = false;
+        dialogueController.gameObject.SetActive(true);
+        dialogueController.SetTextsActive(dialogue, EndEvent);
     }
 }

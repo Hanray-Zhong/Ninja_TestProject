@@ -306,9 +306,9 @@ public class PlayerController : MonoBehaviour {
             Collider2D[] cols = Physics2D.OverlapCircleAll(transform.position, HookCircleRadius, 1 << LayerMask.NameToLayer("Hook"));
             if (cols.Length != 0) {
                 foreach (var col in cols) {
+                    float currentDistance = Vector2.Distance(col.gameObject.transform.position, transform.position);
                     if ((faceRight && col.gameObject.transform.position.x < _transform.position.x) || (!faceRight && col.gameObject.transform.position.x > _transform.position.x) || (col.gameObject.transform.position.y <= _transform.position.y))
                         continue;
-                    float currentDistance = Vector2.Distance(col.gameObject.transform.position, transform.position);
                     if (nearestDistance > currentDistance) {
                         nearestHook = col.gameObject;
                         nearestDistance = currentDistance;
@@ -379,6 +379,9 @@ public class PlayerController : MonoBehaviour {
         delta_HookInteraction = 0;
         delta_ThrowInteraction = 0;
         delta_JumpInteraction = 0;
+        lastJumpInteraction = 0;
+        lastThrowInteraction = 0;
+        lastHookInteraction = 0;
         // lastThrowInteraction = 0;
         // lastThrowInteraction = 0;
     }
