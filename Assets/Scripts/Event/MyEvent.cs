@@ -50,4 +50,7 @@ public class MyEvent : MonoBehaviour
         dialogueController.gameObject.SetActive(true);
         dialogueController.SetTextsActive(dialogue, EndEvent);
     }
+    public void NpcCanBeCarried(int index) {
+        NPCs[index].gameObject.GetComponent<NPCUnit>().canBeCarried = true;
+    }
 }

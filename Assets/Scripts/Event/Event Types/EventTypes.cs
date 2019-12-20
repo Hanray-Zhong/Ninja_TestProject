@@ -43,7 +43,7 @@ public class EventTypesInspector : Editor {
         EditorGUILayout.PropertyField(this.serializedObject.FindProperty("haveCondition"));
         if ((target as EventTypes).haveCondition) {
             EditorGUILayout.PropertyField(this.serializedObject.FindProperty("EventCondition"));
-            EditorGUILayout.PropertyField(this.serializedObject.FindProperty("isMeetCondition"));
+            /*EditorGUILayout.PropertyField(this.serializedObject.FindProperty("isMeetCondition"));*/
         }
         EditorGUILayout.PropertyField(this.serializedObject.FindProperty("haveEndEvent"));
         if ((target as EventTypes).haveEndEvent) {

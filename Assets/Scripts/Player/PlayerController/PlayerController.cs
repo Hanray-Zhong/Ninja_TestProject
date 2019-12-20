@@ -6,20 +6,27 @@ public class PlayerController : MonoBehaviour {
     public bool isControlled = true;
 
     [Header("Game Input")]
+    #region Game Input
     public GameInput PlayerGameInput;
     public Dropdown dropdown;
+    #endregion
 
     [Header("Move")]
+    #region Public Move Properties
     public float MoveSpeed;
     private float normalSpeed;
     public float NormalSpeed {
-        get {return normalSpeed;}
+        get { return normalSpeed; }
     }
     public float JumpForce;
     public float distance_toGround;
-    public Vector2 x_offset;
+    public Vector2 offset_toGroundRay;
+    public float Max_Velocity;
+    #endregion
 
     [Header("Throw Cube")]
+    #region Public Throw Cube
+    public bool allowThrowCube;
     public GameObject CubePrefab;
     public Transform ThrowPos;
     public float ThrowForce;
@@ -28,12 +35,27 @@ public class PlayerController : MonoBehaviour {
     public float CubeCDTimer = 0;
     [Range(0, 150)]
     public float Bullet_Timer = 0;
+    [HideInInspector]
     public bool onBulletTime = false;
     public GameObject FlashEffect;
     public TrailRenderer trailRenderer;
+    #endregion
 
-    [Header("Hook")]
+    [Header("Carry NPC")]
+    #region Carry NPC
+    public bool canCarryNPC;
+    public GameObject carriedNPC;
+    public float offset_NpcToPlayer;
+    #endregion
+
+
+    [Header("Link")]
+    #region Link Properties
+    // Ability Allowance
+    public bool AllowLink = false;
+    public bool allowLink { get { return AllowLink; } set { AllowLink = value; } }
     // public GameObject hookPrefab;
+    [HideInInspector]
     public bool onHook;
     public float HookCircleRadius;
     public float SwingForce;
@@ -45,10 +67,13 @@ public class PlayerController : MonoBehaviour {
     public float Max_RopeLength;
     public float Min_RopeLength;
     public LineRenderer Rope;
-    // Ability Allowance
-    public bool allowLink { get; set; }
+    #endregion
+    
 
-    [Header("move")]
+
+    [Header("Move")]
+    #region Move Properties
+
     private Vector2 moveDir;
     public Vector2 MoveDir {
         get {return moveDir;}
@@ -58,7 +83,10 @@ public class PlayerController : MonoBehaviour {
         get {return this.faceRight;}
         set { this.faceRight = value; }
     }
-    [Header("jump")]
+    #endregion
+
+    [Header("Jump")]
+    #region Jump Properties
     private bool onGround;
     private float delta_JumpInteraction;
     private float lastJumpInteraction = 0;
@@ -75,31 +103,36 @@ public class PlayerController : MonoBehaviour {
         get {return this.secJump;}
         set {secJump = value;}
     }
-    // private float jumpInteract;
-    
-    [Header("throw cube")]
+    #endregion
+
+    [Header("Throw Cube")]
+    #region Throw Cube
     private bool allowThrow = true;
     private Cube currentCube;
     private float lastThrowInteraction = 0;
     private float delta_ThrowInteraction;
     private SpriteRenderer sprite;
+    #endregion
 
-    [Header("flash")]
+    [Header("Flash")]
     private bool FlashOver = true;
 
-    [Header("hook")]
+    [Header("Hook")]
+    #region Hook
     private float nearestDistance;
     private GameObject nearestHook = null;
     private GameObject currentHook;
     private Vector2 velocity_beforeHook;
     private bool justHook = false;
     private float lastHookInteraction = 0;
-    private float delta_HookInteraction; 
+    private float delta_HookInteraction;
+    #endregion
 
-    // Component
+    #region Component
     private Rigidbody2D _rigidbody;
     private Transform _transform;
     private PlayerUnit _unit;
+    #endregion
 
     private void Awake() {
         _rigidbody = gameObject.GetComponent<Rigidbody2D>();
@@ -122,7 +155,10 @@ public class PlayerController : MonoBehaviour {
         this.Move();
         this.Jump();
         this.CheckCubeCD();
-        this.ThrowCube();
+        if (allowThrowCube)
+            this.ThrowCube();
+        else
+            this.CarryNPC();
         this.Flash();
         if (allowLink)
             this.GetHook();
@@ -156,6 +192,9 @@ public class PlayerController : MonoBehaviour {
             }
             transform.up = nearestHook.transform.position - transform.position;
         }
+        if (_rigidbody.velocity.magnitude > Max_Velocity) {
+            _rigidbody.velocity = _rigidbody.velocity.normalized * Max_Velocity;
+        }
     }
     public bool Jump() {
         // jumpInteract = PlayerGameInput.GetJumpInteraction();
@@ -170,9 +209,8 @@ public class PlayerController : MonoBehaviour {
             allowJump = false;
         if (delta_JumpInteraction > 0 && (allowJump || secJump)) {
             _rigidbody.velocity = new Vector2(_rigidbody.velocity.x, 0);
-            _rigidbody.AddForce(Vector2.up * JumpForce, ForceMode2D.Impulse);
-
-            // Debug.Log("Jump!");
+            //_rigidbody.AddForce(Vector2.up * JumpForce, ForceMode2D.Impulse);
+            _rigidbody.velocity += new Vector2(0, JumpForce);
 
             allowJump = false;
             secJump = false;
@@ -184,8 +222,8 @@ public class PlayerController : MonoBehaviour {
     }
     private void IsOnGround() {
         onGround = Physics2D.Raycast(transform.position, Vector2.down, distance_toGround, 1 << LayerMask.NameToLayer("Ground")) || 
-                    Physics2D.Raycast(transform.position + (Vector3)x_offset, Vector2.down, distance_toGround, 1 << LayerMask.NameToLayer("Ground")) || 
-                    Physics2D.Raycast(transform.position - (Vector3)x_offset, Vector2.down, distance_toGround, 1 << LayerMask.NameToLayer("Ground"));
+                    Physics2D.Raycast(transform.position + (Vector3)offset_toGroundRay, Vector2.down, distance_toGround, 1 << LayerMask.NameToLayer("Ground")) || 
+                    Physics2D.Raycast(transform.position - (Vector3)offset_toGroundRay, Vector2.down, distance_toGround, 1 << LayerMask.NameToLayer("Ground"));
     }
     private void ThrowCube() {
         delta_ThrowInteraction = PlayerGameInput.GetThrowInteraction() - lastThrowInteraction;
@@ -231,6 +269,15 @@ public class PlayerController : MonoBehaviour {
             allowThrow = true;
         else
             allowThrow = false;
+    }
+    private void CarryNPC() {
+        if (PlayerGameInput.GetThrowInteraction() > 0 && canCarryNPC && carriedNPC !=  null && !allowThrowCube) {
+            carriedNPC.GetComponent<Rigidbody2D>().gravityScale = 0;
+            carriedNPC.transform.position = _transform.position + new Vector3((faceRight ? (-offset_NpcToPlayer) : offset_NpcToPlayer), 0, 0);
+        }
+        else {
+            carriedNPC.GetComponent<Rigidbody2D>().gravityScale = 6;
+        }
     }
     private void CheckCubeCD() {
         Color Transparent = new Color(1, 1, 1, 0.5f);
@@ -395,7 +442,7 @@ public class PlayerController : MonoBehaviour {
     private void OnDrawGizmosSelected() {
         Gizmos.color = new Color(1, 0, 0);
         Gizmos.DrawLine(transform.position, transform.position + new Vector3(0, -distance_toGround, 0));
-        Gizmos.DrawLine(transform.position + (Vector3)x_offset, transform.position + new Vector3(0, -distance_toGround, 0));
+        Gizmos.DrawLine(transform.position + (Vector3)offset_toGroundRay, transform.position + new Vector3(0, -distance_toGround, 0));
         Gizmos.DrawWireSphere(transform.position, HookCircleRadius);
     }
 }
