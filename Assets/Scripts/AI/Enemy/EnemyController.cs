@@ -4,14 +4,20 @@ using UnityEngine;
 
 public class EnemyController : MonoBehaviour
 {
-    public GameObject[] Enemies;
-    public Vector2[] EnemiesPos;
+    public List<GameObject> Enemies = new List<GameObject>();
+    public List<Vector2> EnemiesPos = new List<Vector2>();
+
     public PlayerUnit playerUnit;
     private bool canInvoke = true;
 
     private void Awake() {
-        for (int i = 0; i < Enemies.Length; i++) {
-            EnemiesPos[i] = Enemies[i].transform.position;
+        GameObject[] allEnemies;
+        allEnemies = GameObject.FindGameObjectsWithTag("Enemy");
+        foreach (GameObject enemy in allEnemies) {
+            if (enemy.GetComponent<EnemyUnit>().canBeResurrected) {
+                Enemies.Add(enemy);
+                EnemiesPos.Add(enemy.transform.position);
+            }
         }
     }
     private void Update() {

@@ -7,7 +7,8 @@ public class Cube : MonoBehaviour {
     public GameObject Player;
     public bool HitGround = false;
     public bool HitEnemy = false;
-    public GameObject Enemy = null;
+    public bool HitBoss = false;
+    public GameObject target = null;
     public bool HitInteractiveItem = false;
     public GameObject InteractiveItem;
     public float timeScale;
@@ -34,7 +35,7 @@ public class Cube : MonoBehaviour {
         }
         if (other.tag == "Enemy") {
             HitEnemy = true;
-            Enemy = other.gameObject;
+            target = other.gameObject;
             Time.timeScale = timeScale;
             Time.fixedDeltaTime = 0.02f * Time.timeScale;
         }

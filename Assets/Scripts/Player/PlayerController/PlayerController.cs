@@ -107,7 +107,7 @@ public class PlayerController : MonoBehaviour {
 
     [Header("Throw Cube")]
     #region Throw Cube
-    private bool allowThrow = true;
+    private bool canThrowCube = true;
     private Cube currentCube;
     private float lastThrowInteraction = 0;
     private float delta_ThrowInteraction;
@@ -227,7 +227,7 @@ public class PlayerController : MonoBehaviour {
     }
     private void ThrowCube() {
         delta_ThrowInteraction = PlayerGameInput.GetThrowInteraction() - lastThrowInteraction;
-        if (PlayerGameInput.GetThrowInteraction() == 1 && allowThrow) {
+        if (PlayerGameInput.GetThrowInteraction() > 0.9f && canThrowCube) {
             Time.timeScale = 0.1f;
             Time.fixedDeltaTime = 0.02f * Time.timeScale;
             onBulletTime = true;
@@ -240,7 +240,7 @@ public class PlayerController : MonoBehaviour {
             else
                 Arrow.transform.up = Vector2.left;
         }
-        if ((delta_ThrowInteraction < 0 || Bullet_Timer >= 150) && allowThrow) {
+        if ((delta_ThrowInteraction < 0 || Bullet_Timer >= 150) && canThrowCube) {
             currentCube = Instantiate(CubePrefab, ThrowPos.position, Quaternion.identity).GetComponent<Cube>();
             currentCube.Player = gameObject;
             Rigidbody2D cube_rigidbody = currentCube.gameObject.GetComponent<Rigidbody2D>();
@@ -253,7 +253,7 @@ public class PlayerController : MonoBehaviour {
                     cube_rigidbody.AddForce(Vector2.left * ThrowForce, ForceMode2D.Impulse);
             }
             CubeCDTimer = 0;
-            allowThrow = false;
+            canThrowCube = false;
             Bullet_Timer = 0;
             Arrow.SetActive(false);
             Time.timeScale = 1;
@@ -266,12 +266,13 @@ public class PlayerController : MonoBehaviour {
         if (CubeCDTimer < 150)
             CubeCDTimer++;
         if (CubeCDTimer == 150 && FlashOver)
-            allowThrow = true;
+            canThrowCube = true;
         else
-            allowThrow = false;
+            canThrowCube = false;
     }
     private void CarryNPC() {
-        if (PlayerGameInput.GetThrowInteraction() > 0 && canCarryNPC && carriedNPC !=  null && !allowThrowCube) {
+        if (carriedNPC == null) return;
+        if (PlayerGameInput.GetThrowInteraction() > 0 && canCarryNPC && !allowThrowCube) {
             carriedNPC.GetComponent<Rigidbody2D>().gravityScale = 0;
             carriedNPC.transform.position = _transform.position + new Vector3((faceRight ? (-offset_NpcToPlayer) : offset_NpcToPlayer), 0, 0);
         }
@@ -290,7 +291,7 @@ public class PlayerController : MonoBehaviour {
         }
     }
     private bool Flash() {
-        if (!allowThrow && currentCube != null && CubeCDTimer > 10) {
+        if (!canThrowCube && currentCube != null && CubeCDTimer > 10) {
             if (delta_ThrowInteraction > 0) {
                 FlashOver = false;
                 if (FlashEffect != null) {
@@ -308,7 +309,7 @@ public class PlayerController : MonoBehaviour {
                     _rigidbody.velocity = Vector2.zero;
                 }
                 if (currentCube.HitEnemy) {
-                    currentCube.Enemy.SetActive(false);
+                    currentCube.target.GetComponent<EnemyUnit>().GetHurt(1);
                     gameObject.transform.position = currentCube.gameObject.transform.position;
                     CubeCDTimer = 140;
                     Destroy(currentCube.gameObject);
@@ -354,7 +355,10 @@ public class PlayerController : MonoBehaviour {
             if (cols.Length != 0) {
                 foreach (var col in cols) {
                     float currentDistance = Vector2.Distance(col.gameObject.transform.position, transform.position);
-                    if ((faceRight && col.gameObject.transform.position.x < _transform.position.x) || (!faceRight && col.gameObject.transform.position.x > _transform.position.x) || (col.gameObject.transform.position.y <= _transform.position.y))
+                    if ((faceRight && col.gameObject.transform.position.x < _transform.position.x) || 
+                        (!faceRight && col.gameObject.transform.position.x > _transform.position.x) || 
+                        (col.gameObject.transform.position.y <= _transform.position.y) || 
+                        (currentDistance < Min_RopeLength))
                         continue;
                     if (nearestDistance > currentDistance) {
                         nearestHook = col.gameObject;
@@ -417,20 +421,24 @@ public class PlayerController : MonoBehaviour {
     }
     
     public void ResetStatus() {
-        moveDir = Vector2.zero;
-        CubeCDTimer = 150;
-        Bullet_Timer = 0;
-        Hang_Time = 0;
-        Hook_CD_Time = 150;
-        onHook = false;
         delta_HookInteraction = 0;
         delta_ThrowInteraction = 0;
         delta_JumpInteraction = 0;
         lastJumpInteraction = 0;
         lastThrowInteraction = 0;
         lastHookInteraction = 0;
-        // lastThrowInteraction = 0;
-        // lastThrowInteraction = 0;
+
+        moveDir = Vector2.zero;
+
+        CubeCDTimer = 150;
+        Bullet_Timer = 0;
+
+        FlashOver = true;
+
+        Hang_Time = 0;
+        Hook_CD_Time = 150;
+        onHook = false;
+
     }
     public void SwitchGameInput() {
         switch (dropdown.value) {
