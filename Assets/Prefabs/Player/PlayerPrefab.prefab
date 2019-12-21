@@ -472,8 +472,9 @@ MonoBehaviour:
   MoveSpeed: 10
   JumpForce: 28
   distance_toGround: 1.74
-  x_offset: {x: 0.531, y: 0}
-  Max_Velocity: 0
+  offset_toGroundRay: {x: 0.53, y: 0}
+  Max_Velocity: 50
+  allowThrowCube: 1
   CubePrefab: {fileID: 8128444132521573636, guid: 02991bbb5acce11418a62f354475d4cd,
     type: 3}
   ThrowPos: {fileID: 3922431956393790104}
@@ -485,6 +486,10 @@ MonoBehaviour:
   FlashEffect: {fileID: 1615402597081308, guid: 9869276f7840be74db90a899b4748e7e,
     type: 3}
   trailRenderer: {fileID: 771325586}
+  canCarryNPC: 0
+  carriedNPC: {fileID: 0}
+  offset_NpcToPlayer: 0
+  AllowLink: 1
   onHook: 0
   HookCircleRadius: 8
   SwingForce: 100
@@ -492,7 +497,7 @@ MonoBehaviour:
   Hook_CD_Time: 150
   ClimbSpeed: 1
   Max_RopeLength: 8
-  Min_RopeLength: 0
+  Min_RopeLength: 1
   Rope: {fileID: 0}
 --- !u!114 &3922431957880266799
 MonoBehaviour:
