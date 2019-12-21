@@ -13,11 +13,14 @@ public class BossSkills : MonoBehaviour
     public GameObject EnemyPrefab;
     public GenerateEnemiesRegionGroup[] generateEnemiesRegionGroups;
     public Vector2 Margin;
+    [Header("Generate Float Block")]
+    public GameObject FloatBlockPrefab;
+    public Vector2 floatBlockOriginPos;
 
     public void GenerateEnemies() {
         GenerateRandom(EnemyPrefab, generateEnemiesRegionGroups);
     }
-    public void GenerateRandom(GameObject obj, GenerateEnemiesRegionGroup[] generateEnemiesRegionGroups) {
+    private void GenerateRandom(GameObject obj, GenerateEnemiesRegionGroup[] generateEnemiesRegionGroups) {
         foreach (GenerateEnemiesRegionGroup regionGroup in generateEnemiesRegionGroups) {
             Vector2 pos;
             int index = Random.Range(0, regionGroup.generateEnemiesRegions.Length);
@@ -27,6 +30,14 @@ public class BossSkills : MonoBehaviour
         }
     }
 
+    public void GenerateFloatBlock() {
+        Instantiate(FloatBlockPrefab, floatBlockOriginPos, Quaternion.identity);
+    }
+
+
+
+
+
 
     [CustomEditor(typeof(BossSkills))]
     public class BossSkillsEditor : Editor {
@@ -35,8 +46,11 @@ public class BossSkills : MonoBehaviour
 
             BossSkills skills = (BossSkills)target;
 
-            if (GUILayout.Button("GenerateEnemies")) {
+            if (GUILayout.Button("Generate Enemies")) {
                 skills.GenerateEnemies();
+            }
+            if (GUILayout.Button("Generate Float Block")) {
+                skills.GenerateFloatBlock();
             }
         }
     }
@@ -55,6 +69,7 @@ public class BossSkills : MonoBehaviour
                 Gizmos.DrawLine(c, d);
             }
         }
+        Gizmos.DrawSphere(floatBlockOriginPos, 0.1f);
 
     }
 }
