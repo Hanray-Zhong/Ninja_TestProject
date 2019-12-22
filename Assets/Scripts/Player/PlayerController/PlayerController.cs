@@ -225,6 +225,16 @@ public class PlayerController : MonoBehaviour {
                     Physics2D.Raycast(transform.position + (Vector3)offset_toGroundRay, Vector2.down, distance_toGround, 1 << LayerMask.NameToLayer("Ground")) || 
                     Physics2D.Raycast(transform.position - (Vector3)offset_toGroundRay, Vector2.down, distance_toGround, 1 << LayerMask.NameToLayer("Ground"));
     }
+    private void CarryNPC() {
+        if (carriedNPC == null) return;
+        if (PlayerGameInput.GetThrowInteraction() > 0 && canCarryNPC && !allowThrowCube) {
+            carriedNPC.GetComponent<Rigidbody2D>().gravityScale = 0;
+            carriedNPC.transform.position = _transform.position + new Vector3((faceRight ? (-offset_NpcToPlayer) : offset_NpcToPlayer), 0, 0);
+        }
+        else {
+            carriedNPC.GetComponent<Rigidbody2D>().gravityScale = 6;
+        }
+    }
     private void ThrowCube() {
         delta_ThrowInteraction = PlayerGameInput.GetThrowInteraction() - lastThrowInteraction;
         if (PlayerGameInput.GetThrowInteraction() > 0.9f && canThrowCube) {
@@ -269,16 +279,6 @@ public class PlayerController : MonoBehaviour {
             canThrowCube = true;
         else
             canThrowCube = false;
-    }
-    private void CarryNPC() {
-        if (carriedNPC == null) return;
-        if (PlayerGameInput.GetThrowInteraction() > 0 && canCarryNPC && !allowThrowCube) {
-            carriedNPC.GetComponent<Rigidbody2D>().gravityScale = 0;
-            carriedNPC.transform.position = _transform.position + new Vector3((faceRight ? (-offset_NpcToPlayer) : offset_NpcToPlayer), 0, 0);
-        }
-        else {
-            carriedNPC.GetComponent<Rigidbody2D>().gravityScale = 6;
-        }
     }
     private void CheckCubeCD() {
         Color Transparent = new Color(1, 1, 1, 0.5f);
@@ -427,6 +427,8 @@ public class PlayerController : MonoBehaviour {
         lastJumpInteraction = 0;
         lastThrowInteraction = 0;
         lastHookInteraction = 0;
+
+        onBulletTime = false;
 
         moveDir = Vector2.zero;
 

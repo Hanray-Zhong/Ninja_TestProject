@@ -12,6 +12,8 @@ TagManager:
   - SafeRegion
   - Dialogue
   - NPC
+  - BossThorns
+  - BossRoomGround
   layers:
   - Default
   - TransparentFX

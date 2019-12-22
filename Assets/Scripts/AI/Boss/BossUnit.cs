@@ -4,7 +4,8 @@ using UnityEngine;
 
 public class BossUnit : EnemyUnit
 {
-    public List<GameObject> status = new List<GameObject>();
+    public BossFSM bossFSM;
+    public BossSkills bossSkills;
     private SpriteRenderer sprite;
     private Vector3 originPos;
     private Color originColor;
@@ -17,16 +18,6 @@ public class BossUnit : EnemyUnit
         col = gameObject.GetComponent<CircleCollider2D>();
     }
 
-    public void ChangeStatus(int index) {
-        foreach (GameObject _status in status) {
-            if (status.IndexOf(_status) != index) {
-                _status.SetActive(false);
-            }
-            else {
-                _status.SetActive(true);
-            }
-        }
-    }
     public override void GetHurt(int damage) {
         health -= damage;
         if (health <= 0) {
@@ -43,5 +34,10 @@ public class BossUnit : EnemyUnit
         sprite.color = originColor;
         transform.position = originPos;
         col.enabled = true;
+        bossSkills.GenerateThorns();
+        yield return new WaitForSeconds(3);
+        bossFSM.BossSkillsListIndex = -1;
+        bossFSM.isRunning = true;
+
     }
 }

@@ -28,7 +28,7 @@ public class Cube : MonoBehaviour {
     }
     private void OnTriggerEnter2D(Collider2D other) {
         if (playerUnit.IsDead) Destroy(gameObject);
-        if (other.tag == "Ground") {
+        if (other.tag == "Ground" || other.tag == "BossThorns" || other.tag == "BossRoomGround") {
             HitGround = true;
             cube_rigidbody.velocity = Vector2.zero;
             Destroy(gameObject, 1);

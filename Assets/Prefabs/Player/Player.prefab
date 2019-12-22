@@ -106,6 +106,7 @@ LineRenderer:
   m_MotionVectors: 0
   m_LightProbeUsage: 0
   m_ReflectionProbeUsage: 0
+  m_RayTracingMode: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -242,6 +243,7 @@ SpriteRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -336,12 +338,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8fc093721895cbe449f7e5223d668d20, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  isControlled: 1
   PlayerGameInput: {fileID: 4242612792733515193}
   dropdown: {fileID: 0}
   MoveSpeed: 3.5
   JumpForce: 9
   distance_toGround: 0.4
-  x_offset: {x: 0.33, y: 0}
+  offset_toGroundRay: {x: 0, y: 0}
+  Max_Velocity: 0
+  allowThrowCube: 0
   CubePrefab: {fileID: 8128444132521573636, guid: 02991bbb5acce11418a62f354475d4cd,
     type: 3}
   ThrowPos: {fileID: 4242612792072427278}
@@ -349,17 +354,22 @@ MonoBehaviour:
   Arrow: {fileID: 4242612791520367035}
   CubeCDTimer: 0
   Bullet_Timer: 0
+  onBulletTime: 0
   FlashEffect: {fileID: 0}
   trailRenderer: {fileID: 0}
+  canCarryNPC: 1
+  carriedNPC: {fileID: 0}
+  offset_NpcToPlayer: 0
+  AllowLink: 1
   onHook: 0
   HookCircleRadius: 4.12
   SwingForce: 100
   Hang_Time: 0
   Hook_CD_Time: 150
   ClimbSpeed: 1
-  Rope: {fileID: 4242612792455152254}
   Max_RopeLength: 4.12
   Min_RopeLength: 0
+  Rope: {fileID: 0}
 --- !u!114 &4242612792733515193
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -518,6 +528,7 @@ SpriteRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:

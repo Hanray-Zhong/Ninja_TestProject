@@ -41,6 +41,7 @@ public class Boss_FloatBlock : MonoBehaviour
                 Destroy(transform.parent.gameObject);
             isFollowingPlayer = true;
             canInvoke = true;
+            DownSpeed *= 1.1f;
         }
     }
     private void DropDown() {
