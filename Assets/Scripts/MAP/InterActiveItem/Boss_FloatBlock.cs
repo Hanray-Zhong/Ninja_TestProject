@@ -31,6 +31,7 @@ public class Boss_FloatBlock : MonoBehaviour
         if (playerUnit.IsDead)
             Destroy(transform.parent.gameObject);
         if (canInvoke) {
+            Debug.Log("Drop Down");
             Invoke("DropDown", 3);
             canInvoke = false;
         }
@@ -41,7 +42,7 @@ public class Boss_FloatBlock : MonoBehaviour
                 Destroy(transform.parent.gameObject);
             isFollowingPlayer = true;
             canInvoke = true;
-            DownSpeed *= 1.1f;
+            DownSpeed *= 1.2f;
         }
     }
     private void DropDown() {
