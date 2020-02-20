@@ -7,6 +7,8 @@ public class Boss_FloatBlock : MonoBehaviour
     public float DownSpeed;
     public float distance_toGround;
     public Vector2 x_offset;
+
+
     private Vector3 oringinPos;
 
     public bool isFollowingPlayer;

@@ -14,8 +14,9 @@ public class BossSkills : MonoBehaviour
 
     public Transform PlayerTrans;
 
-    private Rigidbody2D rigidbody;
-    private BossFSM bossFSM;
+    // private BossFSM bossFSM;
+
+    private Rigidbody2D _rigidbody2D;
     [Header("Generate Enemies")]
     public GameObject EnemyPrefab;
     public GenerateEnemiesRegionGroup[] generateEnemiesRegionGroups;
@@ -27,30 +28,20 @@ public class BossSkills : MonoBehaviour
     public GameObject[] Thorns;
     public float throwForce;
     [Header("Dash")]
-    public bool isReadyDash = false;
+    // public bool isReadyDash = false;
     public bool canDash = false;
-    private Vector2 dir2Player;
+    public Vector2 dir2Player;
     public float aim_offset;
     public float speedParamater;
     public AnimationCurve speed;
     public LineRenderer warningLR;
-    private float timmer = 0;
 
     private void Start() {
-        rigidbody = gameObject.GetComponent<Rigidbody2D>();
-        bossFSM = gameObject.GetComponent<BossFSM>();
+        _rigidbody2D = gameObject.GetComponent<Rigidbody2D>();
+        // bossFSM = gameObject.GetComponent<BossFSM>();
     }
 
-    private void Update() {
-        if (isReadyDash) {
-            ReadyDash();
-        }
-        if (canDash) {
-            BossDash();
-        }
-    }
-
-
+    /* FSM Skills
     public void GenerateEnemies(int endTime) {
         GenerateRandom(EnemyPrefab, generateEnemiesRegionGroups);
         Invoke("SkillEnd", endTime);
@@ -95,34 +86,75 @@ public class BossSkills : MonoBehaviour
         warningLR.SetPosition(0, transform.position);
         warningLR.SetPosition(1, PlayerTrans.position);
         dir2Player = PlayerTrans.position - transform.position + new Vector3(0, aim_offset, 0);
-        timmer++;
-        if (timmer >= 150) {
-            warningLR.gameObject.SetActive(false);
-            isReadyDash = false;
-            timmer = 0;
-            canDash = true;
-        }
+
     }
     private void BossDash() {
+        warningLR.gameObject.SetActive(false);
         rigidbody.velocity = speed.Evaluate(timmer / 300) * dir2Player * speedParamater;
         timmer++;
     }
+    */
 
-    private void OnTriggerEnter2D(Collider2D collision) {
-        if (collision.tag == "Ground") {
-            rigidbody.velocity = Vector2.zero;
-            canDash = false;
-            timmer = 0;
+    // TimeLine Skills
+    public void GenerateEnemies_TimeLine() {
+        GenerateRandom(EnemyPrefab, generateEnemiesRegionGroups);
+    }
+    private void GenerateRandom(GameObject obj, GenerateEnemiesRegionGroup[] generateEnemiesRegionGroups) {
+        foreach (GenerateEnemiesRegionGroup regionGroup in generateEnemiesRegionGroups) {
+            Vector2 pos;
+            int index = Random.Range(0, regionGroup.generateEnemiesRegions.Length);
+            Bounds bounds = regionGroup.generateEnemiesRegions[index].bounds;
+            pos = new Vector2(Random.Range(bounds.min.x + Margin.x, bounds.max.x - Margin.x), Random.Range(bounds.min.y + Margin.y, bounds.max.y - Margin.y));
+            Instantiate(obj, pos, Quaternion.identity);
         }
     }
 
-    private void SkillEnd() {
-        bossFSM.currentStateEnd = true;
+    public void GenerateFloatBlock_TimeLine() {
+        Instantiate(FloatBlockPrefab, floatBlockOriginPos, Quaternion.identity);
+    }
+
+    public void ThrowThorns_TimeLine() {
+        foreach (GameObject thorn in Thorns) {
+            thorn.GetComponent<Rigidbody2D>().AddForce(thorn.transform.up.normalized * throwForce, ForceMode2D.Impulse);
+        }
+    }
+    public void GenerateThorns() {
+        for (int i = 0; i < Thorns.Length; i++) {
+            Vector3 offset = new Vector3(0.5f * Mathf.Sin(i * (Mathf.PI / 18)), 0.5f * Mathf.Cos(i * (Mathf.PI / 18)), 0);
+            Thorns[i].SetActive(true);
+            Thorns[i].transform.position = transform.position + transform.localScale.x * offset;
+            Thorns[i].transform.up = Thorns[i].transform.position - transform.position;
+        }
     }
 
 
+    public void ReadyDash() {
+        warningLR.gameObject.SetActive(true);
+        warningLR.SetPosition(0, transform.position);
+        warningLR.SetPosition(1, PlayerTrans.position);
+        dir2Player = PlayerTrans.position - transform.position + new Vector3(0, aim_offset, 0);
+    }
+    public void BossDash(float timmer) {
+        if (canDash) {
+            _rigidbody2D.velocity = speed.Evaluate(timmer / 300) * dir2Player * speedParamater;
+        }
+    }
 
 
+    private void OnTriggerEnter2D(Collider2D collision) {
+        if (collision.tag == "Ground") {
+            _rigidbody2D.velocity = Vector2.zero;
+            canDash = false;
+        }
+    }
+
+/*    private void SkillEnd() {
+        bossFSM.currentStateEnd = true;
+    }*/
+
+
+
+    /* FSM
     [CustomEditor(typeof(BossSkills))]
     public class BossSkillsEditor : Editor {
         public override void OnInspectorGUI() {
@@ -147,6 +179,7 @@ public class BossSkills : MonoBehaviour
             }
         }
     }
+    */
     private void OnDrawGizmos() {
         if (generateEnemiesRegionGroups.Length == 0) return;
         Gizmos.color = new Color(1, 0, 0, 1);
