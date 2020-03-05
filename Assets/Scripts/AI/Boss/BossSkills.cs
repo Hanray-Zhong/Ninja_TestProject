@@ -19,6 +19,7 @@ public class BossSkills : MonoBehaviour
     private Rigidbody2D _rigidbody2D;
     [Header("Generate Enemies")]
     public GameObject EnemyPrefab;
+    public GameObject EnemiesFather;
     public GenerateEnemiesRegionGroup[] generateEnemiesRegionGroups;
     public Vector2 Margin;
     [Header("Generate Float Block")]
@@ -105,7 +106,7 @@ public class BossSkills : MonoBehaviour
             int index = Random.Range(0, regionGroup.generateEnemiesRegions.Length);
             Bounds bounds = regionGroup.generateEnemiesRegions[index].bounds;
             pos = new Vector2(Random.Range(bounds.min.x + Margin.x, bounds.max.x - Margin.x), Random.Range(bounds.min.y + Margin.y, bounds.max.y - Margin.y));
-            Instantiate(obj, pos, Quaternion.identity);
+            Instantiate(obj, pos, Quaternion.identity, EnemiesFather.transform);
         }
     }
 
