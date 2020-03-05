@@ -9,12 +9,15 @@ public class NPCUnit : MonoBehaviour
     public float interactRadius;
     [Header("Player Interact")]
     public PlayerController playerController;
+    public PlayerUnit playerUnit;
     public bool canBeCarried = false;
     public bool lookAtPlayer;
     
     private Rigidbody2D _rigidbody;
     private Transform _transform;
     private Transform playerTransform;
+
+    public bool IsDead { get; set; }
 
     private void Start() {
         _rigidbody = gameObject.GetComponent<Rigidbody2D>();
@@ -45,4 +48,30 @@ public class NPCUnit : MonoBehaviour
             }
         }
     }
+
+    /*private IEnumerator Resurrection() {
+        if (DeadEffect != null) {
+            Instantiate(DeadEffect, transform.position, Quaternion.identity);
+        }
+        // Crountine
+        yield return new WaitForSeconds(0.3f);
+        if (LoadSceneTransition != null) {
+            LoadSceneTransition.CanFade = true;
+        }
+        yield return new WaitForSeconds(1.5f);
+        if (LoadSceneTransition != null) {
+            LoadSceneTransition.CanFade = true;
+        }
+        Color unAlpha = new Color(1, 1, 1, 1);
+        // 状态重置
+        if (ResurrectionPoint != null)
+            transform.position = (Vector2)ResurrectionPoint.transform.position + new Vector2(0, 1);
+        _rigidbody.gravityScale = oriGravityScale;
+        _rigidbody.velocity = Vector2.zero;
+        _controller.ResetStatus();
+        sprite.color = unAlpha;
+        _controller.enabled = true;
+        isDead = false;
+        canCoroutine = true;
+    }*/
 }

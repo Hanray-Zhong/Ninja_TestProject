@@ -41,6 +41,7 @@ public class PlayerUnit : MonoBehaviour
         if (isDead && canCoroutine) {
             // 不可操作
             _controller.enabled = false;
+            _controller.Arrow.SetActive(false);
             // 透明
             Color alpha = new Color(1, 1, 1, 0);
             sprite.color = alpha;

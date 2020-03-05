@@ -8,5 +8,8 @@ public class DeathRegion : MonoBehaviour
         if (other.tag == "Player") {
             other.GetComponent<PlayerUnit>().IsDead = true;
         }
+        if (other.tag == "NPC") {
+            other.GetComponent<NPCUnit>().IsDead = true;
+        }
     }
 }
