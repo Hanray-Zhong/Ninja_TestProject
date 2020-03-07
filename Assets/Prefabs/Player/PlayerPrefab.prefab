@@ -488,7 +488,7 @@ MonoBehaviour:
   trailRenderer: {fileID: 771325586}
   canCarryNPC: 0
   carriedNPC: {fileID: 0}
-  offset_NpcToPlayer: 0
+  offset_NpcToPlayer: 0.5
   AllowLink: 1
   onHook: 0
   HookCircleRadius: 8

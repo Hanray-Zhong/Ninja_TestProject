@@ -54,7 +54,6 @@ public class PlayerController : MonoBehaviour {
     // Ability Allowance
     public bool AllowLink = false;
     public bool allowLink { get { return AllowLink; } set { AllowLink = value; } }
-    // public GameObject hookPrefab;
     [HideInInspector]
     public bool onHook;
     public float HookCircleRadius;
@@ -208,9 +207,7 @@ public class PlayerController : MonoBehaviour {
         else
             allowJump = false;
         if (delta_JumpInteraction > 0 && (allowJump || secJump)) {
-            _rigidbody.velocity = new Vector2(_rigidbody.velocity.x, 0);
-            //_rigidbody.AddForce(Vector2.up * JumpForce, ForceMode2D.Impulse);
-            _rigidbody.velocity += new Vector2(0, JumpForce);
+            JumpAction();
 
             allowJump = false;
             secJump = false;
@@ -224,6 +221,10 @@ public class PlayerController : MonoBehaviour {
         onGround = Physics2D.Raycast(transform.position, Vector2.down, distance_toGround, 1 << LayerMask.NameToLayer("Ground")) || 
                     Physics2D.Raycast(transform.position + (Vector3)offset_toGroundRay, Vector2.down, distance_toGround, 1 << LayerMask.NameToLayer("Ground")) || 
                     Physics2D.Raycast(transform.position - (Vector3)offset_toGroundRay, Vector2.down, distance_toGround, 1 << LayerMask.NameToLayer("Ground"));
+    }
+    private void JumpAction() {
+        _rigidbody.velocity = new Vector2(_rigidbody.velocity.x, 0);
+        _rigidbody.velocity += new Vector2(0, JumpForce);
     }
     private void CarryNPC() {
         if (carriedNPC == null) return;
@@ -294,39 +295,44 @@ public class PlayerController : MonoBehaviour {
         if (!canThrowCube && currentCube != null && CubeCDTimer > 10) {
             if (delta_ThrowInteraction > 0) {
                 FlashOver = false;
+                // Effect
                 if (FlashEffect != null) {
                     trailRenderer.emitting = true;
                     Instantiate(FlashEffect, transform.position, Quaternion.identity);
                 }
-                if (currentCube.HitGround) {
-                    gameObject.transform.position = currentCube.gameObject.transform.position;
-                    CubeCDTimer = 140;
-                    Destroy(currentCube.gameObject);
-                }
-                if (!currentCube.HitEnemy && !currentCube.HitInteractiveItem) {
+                // 什么都没有击中
+                if (!currentCube.HitEnemy && !currentCube.HitInteractiveItem && !currentCube.HitGround) {
                     gameObject.transform.position = currentCube.gameObject.transform.position;
                     Destroy(currentCube.gameObject);
                     _rigidbody.velocity = Vector2.zero;
                 }
+                // 击中墙壁，自动跳起
+                if (currentCube.HitGround) {
+                    gameObject.transform.position = currentCube.gameObject.transform.position;
+                    CubeCDTimer = 140;
+                    JumpAction();
+                    Destroy(currentCube.gameObject);
+                }
+                // 击中敌人，自动跳起
                 if (currentCube.HitEnemy) {
                     currentCube.target.GetComponent<EnemyUnit>().GetHurt(1);
                     gameObject.transform.position = currentCube.gameObject.transform.position;
                     CubeCDTimer = 140;
+                    JumpAction();
                     Destroy(currentCube.gameObject);
-                    _rigidbody.velocity = Vector2.zero;
                 }
+                // 击中可交互物体
                 if (currentCube.HitInteractiveItem) {
                     currentCube.InteractiveItem.GetComponent<InterActiveItem>().InterAction();
-                    Destroy(currentCube.gameObject);
                     gameObject.transform.position = currentCube.gameObject.transform.position;
                     CubeCDTimer = 140;
+                    Destroy(currentCube.gameObject);
                 }
                 if (FlashEffect != null) {
                     Invoke("SetTrailRendererFalse", 0.1f);
-                    
                     Instantiate(FlashEffect, transform.position, Quaternion.identity);
                 }
-                secJump = true;
+                secJump = false;
                 return true;
             }
         }
@@ -370,7 +376,7 @@ public class PlayerController : MonoBehaviour {
                 }
                 if (delta_HookInteraction > 0) {
                     onHook = true;
-                    secJump = true;
+                    secJump = false;
                     velocity_beforeHook = _rigidbody.velocity;
                     justHook = true;
                     nearestHook.GetComponent<HingeJoint2D>().connectedBody = _rigidbody;
@@ -394,8 +400,9 @@ public class PlayerController : MonoBehaviour {
                 Vector2 swingDir = new Vector2(moveDir.x, 0);
                 _rigidbody.AddForce(swingDir * SwingForce * Time.deltaTime, ForceMode2D.Force);
             }
+
             // 断开连接 (跳跃断开判定有点奇怪)
-            if (delta_HookInteraction < 0 || onGround || !secJump || this.Flash()) {
+            if (delta_HookInteraction < 0 || onGround || this.Flash()) {
                 onHook = false;
                 nearestHook.GetComponent<HingeJoint2D>().connectedBody = null;
                 // Destroy (currentHook);
