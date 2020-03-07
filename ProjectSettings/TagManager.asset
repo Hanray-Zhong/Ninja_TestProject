@@ -15,6 +15,7 @@ TagManager:
   - BossThorns
   - BossRoomGround
   - Boss
+  - Cube
   layers:
   - Default
   - TransparentFX

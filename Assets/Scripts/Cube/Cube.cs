@@ -12,19 +12,30 @@ public class Cube : MonoBehaviour {
     public bool HitInteractiveItem = false;
     public GameObject InteractiveItem;
     public float timeScale;
+    public float CheckGroundRadius;
 
     private PlayerUnit playerUnit;
     private Rigidbody2D cube_rigidbody;
+    private Transform cube_transform;
 
     private void Awake() {
         Player = GameObject.FindGameObjectWithTag("Player");
         playerUnit = Player.GetComponent<PlayerUnit>();
         cube_rigidbody = gameObject.GetComponent<Rigidbody2D>();
+        cube_transform = gameObject.GetComponent<Transform>();
     }
 
     private void Update() {
         transform.Rotate(Vector3.forward * rotateSpeed * Time.deltaTime, Space.World);
         StartCoroutine(Disappear());
+    }
+    private void CheckGround() {
+        Collider2D groundCol = Physics2D.OverlapCircle(cube_transform.position, CheckGroundRadius, 1 << LayerMask.NameToLayer("Ground"));
+        if (groundCol != null) {
+            HitGround = true;
+            cube_rigidbody.velocity = Vector2.zero;
+            Destroy(gameObject, 1);
+        }
     }
     private void OnTriggerEnter2D(Collider2D other) {
         if (playerUnit.IsDead) Destroy(gameObject);
@@ -57,5 +68,10 @@ public class Cube : MonoBehaviour {
         yield return new WaitForSeconds(ActiveTime);
         cube_rigidbody.velocity = Vector2.zero;
         Destroy(gameObject, 1);
+    }
+
+    private void OnDrawGizmosSelected() {
+        Gizmos.color = new Color(1, 0, 0);
+        Gizmos.DrawWireSphere(transform.position, CheckGroundRadius);
     }
 }
