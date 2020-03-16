@@ -47,6 +47,7 @@ SpriteRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -97,6 +98,11 @@ MonoBehaviour:
   OnGroundForce: 3
   AirForce: 4
   WindDir: {x: 0, y: 1}
+  On_Time: 100
+  Off_Time: 200
+  on_timer: 0
+  off_timer: 0
+  haveWind: 0
 --- !u!61 &5951363710275113056
 BoxCollider2D:
   m_ObjectHideFlags: 0

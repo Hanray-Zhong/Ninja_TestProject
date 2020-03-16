@@ -17,8 +17,10 @@ public class PlayerUnit : MonoBehaviour
     private bool isDead = false;
     private bool canCoroutine = true;
     private SpriteRenderer sprite;
+    private Transform _transform;
     private Rigidbody2D _rigidbody;
     private PlayerController _controller;
+    private Animator _animator;
     private float oriGravityScale;
 
     public bool IsDead {
@@ -28,9 +30,11 @@ public class PlayerUnit : MonoBehaviour
 
     private void Awake() {
         sprite = GetComponent<SpriteRenderer>();
+        _transform = transform;
         _rigidbody = GetComponent<Rigidbody2D>();
         _controller = GetComponent<PlayerController>();
         oriGravityScale = _rigidbody.gravityScale;
+        _animator = GetComponent<Animator>();
     }
 
     private void Update() {
@@ -40,16 +44,18 @@ public class PlayerUnit : MonoBehaviour
     private void SetDeathStatus() {
         if (isDead && canCoroutine) {
             // 不可操作
-            _controller.enabled = false;
             _controller.Arrow.SetActive(false);
+            // 断开绳索连接
+            _controller.Rope.gameObject.SetActive(false);
+            _controller.NearestHook.GetComponent<HingeJoint2D>().connectedBody = null;
+            _controller.NearestHook = null;
             // 透明
             Color alpha = new Color(1, 1, 1, 0);
             sprite.color = alpha;
             // 物理清零
             _rigidbody.gravityScale = 0;
             _rigidbody.velocity = Vector2.zero;
-
-
+            // 开始复活协程
             StartCoroutine(Resurrection());
             canCoroutine = false;
         }
@@ -62,7 +68,7 @@ public class PlayerUnit : MonoBehaviour
     }
     private IEnumerator Resurrection() {
         if (DeadEffect != null) {
-            Instantiate(DeadEffect, transform.position, Quaternion.identity);
+            Instantiate(DeadEffect, _transform.position, Quaternion.identity);
         }
         // Crountine
         yield return new WaitForSeconds(0.3f);
@@ -74,14 +80,22 @@ public class PlayerUnit : MonoBehaviour
             LoadSceneTransition.CanFade = true;
         }
         Color unAlpha = new Color(1, 1, 1, 1);
-        // 状态重置
-         if (ResurrectionPoint != null)
-            transform.position = (Vector2)ResurrectionPoint.transform.position + new Vector2(0, 1);
+        // 复活点
+        if (ResurrectionPoint != null)
+            _transform.position = (Vector2)ResurrectionPoint.transform.position + new Vector2(0, 1);
+        // 物理重置
+        Debug.Log(_rigidbody.IsSleeping());
         _rigidbody.gravityScale = oriGravityScale;
         _rigidbody.velocity = Vector2.zero;
+        // 状态重置
+        _rigidbody.freezeRotation = true;
+        _transform.up = Vector2.up;
         _controller.ResetStatus();
         sprite.color = unAlpha;
-        _controller.enabled = true;
+        // 播放复活动画
+        
+        // 消除死亡状态
+        yield return new WaitForSeconds(1f);
         isDead = false;
         canCoroutine = true;
     }
