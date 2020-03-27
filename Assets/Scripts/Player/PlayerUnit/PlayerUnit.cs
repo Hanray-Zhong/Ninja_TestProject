@@ -47,8 +47,10 @@ public class PlayerUnit : MonoBehaviour
             _controller.Arrow.SetActive(false);
             // 断开绳索连接
             _controller.Rope.gameObject.SetActive(false);
-            _controller.NearestHook.GetComponent<HingeJoint2D>().connectedBody = null;
-            _controller.NearestHook = null;
+            if (_controller.NearestHook != null) {
+                _controller.NearestHook.GetComponent<HingeJoint2D>().connectedBody = null;
+                _controller.NearestHook = null;
+            }
             // 透明
             Color alpha = new Color(1, 1, 1, 0);
             sprite.color = alpha;

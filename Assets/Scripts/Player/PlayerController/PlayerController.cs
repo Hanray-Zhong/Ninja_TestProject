@@ -21,7 +21,7 @@ public class PlayerController : MonoBehaviour {
     }
     public float JumpForce;
     public float distance_toGround;
-    public Vector2 offset_toGroundRay;
+    private Vector2 offset_toGroundRay;
     public float Max_Velocity;
     #endregion
 
@@ -140,6 +140,7 @@ public class PlayerController : MonoBehaviour {
         _unit = gameObject.GetComponent<PlayerUnit>();
         sprite = gameObject.GetComponent<SpriteRenderer>();
         normalSpeed = MoveSpeed;
+        offset_toGroundRay.x = gameObject.GetComponent<BoxCollider2D>().bounds.size.x / 2;
     }
     private void Update() {
         if (isControlled && !_unit.IsDead)
@@ -222,9 +223,10 @@ public class PlayerController : MonoBehaviour {
         return false;
     }
     private void IsOnGround() {
-        onGround = Physics2D.Raycast(transform.position, Vector2.down, distance_toGround, 1 << LayerMask.NameToLayer("Ground")) || 
+        onGround = (Physics2D.Raycast(transform.position, Vector2.down, distance_toGround, 1 << LayerMask.NameToLayer("Ground")) || 
                     Physics2D.Raycast(transform.position + (Vector3)offset_toGroundRay, Vector2.down, distance_toGround, 1 << LayerMask.NameToLayer("Ground")) || 
-                    Physics2D.Raycast(transform.position - (Vector3)offset_toGroundRay, Vector2.down, distance_toGround, 1 << LayerMask.NameToLayer("Ground"));
+                    Physics2D.Raycast(transform.position - (Vector3)offset_toGroundRay, Vector2.down, distance_toGround, 1 << LayerMask.NameToLayer("Ground"))) && 
+                    _rigidbody.velocity.y <= 0.1;
     }
     private void JumpAction() {
         _rigidbody.velocity = new Vector2(_rigidbody.velocity.x, 0);
