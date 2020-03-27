@@ -53,8 +53,17 @@ public class PlayerAnimController : MonoBehaviour
     private bool PlayJumpAnim() {
         if (!playerController.OnGround) {
             PlayerAnimator.SetBool("OnGround", false);
-            if (!animatorStateInfo.IsName("Jump")) {
-                PlayerAnimator.Play("Jump");
+            if (playerRigidbody.velocity.y > 0) {
+                PlayerAnimator.SetBool("IsFalling", false);
+                if (!animatorStateInfo.IsName("Jump")) {
+                    PlayerAnimator.Play("Jump");
+                }
+            }
+            else {
+                PlayerAnimator.SetBool("IsFalling", true);
+                if (!animatorStateInfo.IsName("Fall")) {
+                    PlayerAnimator.Play("Fall");
+                }
             }
             return true;
         }

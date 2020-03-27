@@ -141,6 +141,7 @@ public class PlayerController : MonoBehaviour {
         sprite = gameObject.GetComponent<SpriteRenderer>();
         normalSpeed = MoveSpeed;
         offset_toGroundRay.x = gameObject.GetComponent<BoxCollider2D>().bounds.size.x / 2;
+        // distance_toGround = gameObject.GetComponent<BoxCollider2D>().bounds.size.y / 2 + 0.1f;
     }
     private void Update() {
         if (isControlled && !_unit.IsDead)
@@ -466,6 +467,6 @@ public class PlayerController : MonoBehaviour {
         Gizmos.color = new Color(1, 0, 0);
         Gizmos.DrawLine(transform.position, transform.position + new Vector3(0, -distance_toGround, 0));
         Gizmos.DrawLine(transform.position + (Vector3)offset_toGroundRay, transform.position + new Vector3(0, -distance_toGround, 0));
-        Gizmos.DrawWireSphere(transform.position, HookCircleRadius);
+        // Gizmos.DrawWireSphere(transform.position, HookCircleRadius);
     }
 }
