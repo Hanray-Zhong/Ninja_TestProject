@@ -323,6 +323,7 @@ GameObject:
   - component: {fileID: 3922431957880266796}
   - component: {fileID: 3922431957880266797}
   - component: {fileID: 5919052077054755649}
+  - component: {fileID: 4328757769702362799}
   - component: {fileID: 3922431957880266795}
   - component: {fileID: 3922431957880266798}
   - component: {fileID: 3922431957880266799}
@@ -331,7 +332,6 @@ GameObject:
   - component: {fileID: 771325584}
   - component: {fileID: 771325585}
   - component: {fileID: 771325586}
-  - component: {fileID: 4328757769702362799}
   m_Layer: 11
   m_Name: PlayerPrefab
   m_TagString: Player
@@ -396,7 +396,7 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 11
-  m_Sprite: {fileID: 21300000, guid: d6b9b90db32ce084593b3fe8abf545cb, type: 3}
+  m_Sprite: {fileID: 21300000, guid: dd857d9e3716bb24e868b8650b8d7a1b, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -420,19 +420,35 @@ BoxCollider2D:
   m_IsTrigger: 0
   m_UsedByEffector: 0
   m_UsedByComposite: 0
-  m_Offset: {x: 0, y: -0.7856581}
+  m_Offset: {x: 0, y: -0.42060614}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.5, y: 0.5}
-    oldSize: {x: 5, y: 3.7}
+    oldSize: {x: 2, y: 3}
     newSize: {x: 2.77, y: 2.77}
     adaptiveTilingThreshold: 0.5
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
   serializedVersion: 2
-  m_Size: {x: 1.1120131, y: 1.8329494}
+  m_Size: {x: 1.1731491, y: 1.8023312}
   m_EdgeRadius: 0
+--- !u!58 &4328757769702362799
+CircleCollider2D:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3922431957880266792}
+  m_Enabled: 1
+  m_Density: 1
+  m_Material: {fileID: 0}
+  m_IsTrigger: 1
+  m_UsedByEffector: 0
+  m_UsedByComposite: 0
+  m_Offset: {x: 0, y: -0.7637693}
+  serializedVersion: 2
+  m_Radius: 0.5627375
 --- !u!50 &3922431957880266795
 Rigidbody2D:
   serializedVersion: 4
@@ -451,7 +467,7 @@ Rigidbody2D:
   m_GravityScale: 6
   m_Material: {fileID: 6200000, guid: b093c6311c8011d44933c8e2eac68928, type: 2}
   m_Interpolate: 0
-  m_SleepingMode: 1
+  m_SleepingMode: 0
   m_CollisionDetection: 1
   m_Constraints: 4
 --- !u!114 &3922431957880266798
@@ -471,9 +487,9 @@ MonoBehaviour:
   dropdown: {fileID: 0}
   MoveSpeed: 10
   JumpForce: 28
-  distance_toGround: 1.74
-  offset_toGroundRay: {x: 0.53, y: 0}
-  Max_Velocity: 50
+  distance_toGround: 1.3
+  x_Max_Velocity: 0
+  y_Max_Velocity: 0
   allowThrowCube: 1
   CubePrefab: {fileID: 8128444132521573636, guid: 02991bbb5acce11418a62f354475d4cd,
     type: 3}
@@ -679,19 +695,3 @@ TrailRenderer:
   m_MinVertexDistance: 0.1
   m_Autodestruct: 0
   m_Emitting: 0
---- !u!58 &4328757769702362799
-CircleCollider2D:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3922431957880266792}
-  m_Enabled: 1
-  m_Density: 1
-  m_Material: {fileID: 0}
-  m_IsTrigger: 1
-  m_UsedByEffector: 0
-  m_UsedByComposite: 0
-  m_Offset: {x: 0.000000062762574, y: -1.18}
-  serializedVersion: 2
-  m_Radius: 0.5190685

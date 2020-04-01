@@ -13,16 +13,31 @@ public class PlayerController : MonoBehaviour {
     #endregion
 
     [Header("Move")]
-    #region Public Move Properties
+    #region Move Properties
+    private Vector2 deltaMoveDir;
+    private Vector2 lastMoveDir;
+    public Vector2 MoveDir { get; set; }
+
+    public bool FaceRight { get; set; } = true;
+
     public float MoveSpeed;
-    private float normalSpeed;
-    public float NormalSpeed {
-        get { return normalSpeed; }
-    }
+    public float NormalSpeed { get; set; }
+    public float OutSideSpeed { get; set; }
+
+    public AnimationCurve StartSpeed;
+    public float StartMoveTime;
+    public float EndMoveTime;
+    [Range(0, 1)]
+    public float moveTimer;
+
+    public float x_Max_Velocity;
+    public float y_Max_Velocity;
+
+    [Header("Jump")]
     public float JumpForce;
+    [Header("Is On Ground")]
     public float distance_toGround;
     private Vector2 offset_toGroundRay;
-    public float Max_Velocity;
     #endregion
 
     [Header("Throw Cube")]
@@ -74,15 +89,7 @@ public class PlayerController : MonoBehaviour {
     [Header("Move")]
     #region Move Properties
 
-    private Vector2 moveDir;
-    public Vector2 MoveDir {
-        get {return moveDir;}
-    }
-    private bool faceRight = true;
-    public bool FaceRight {
-        get {return this.faceRight;}
-        set { this.faceRight = value; }
-    }
+
     #endregion
 
     [Header("Jump")]
@@ -139,7 +146,7 @@ public class PlayerController : MonoBehaviour {
         _transform = gameObject.GetComponent<Transform>();
         _unit = gameObject.GetComponent<PlayerUnit>();
         sprite = gameObject.GetComponent<SpriteRenderer>();
-        normalSpeed = MoveSpeed;
+        NormalSpeed = MoveSpeed;
         offset_toGroundRay.x = gameObject.GetComponent<BoxCollider2D>().bounds.size.x / 2;
         // distance_toGround = gameObject.GetComponent<BoxCollider2D>().bounds.size.y / 2 + 0.1f;
     }
@@ -167,41 +174,59 @@ public class PlayerController : MonoBehaviour {
             Flash();
             if (allowLink)
                 GetHook();
+            OnHook();
         }
     }
     private void FixedUpdate() {
-        this.CubeTimer();
+        CubeTimer();
+        MoveTimer();
     }
 
     private void GetMoveDir() {
-        moveDir = PlayerGameInput.GetMoveDir();
-        if (moveDir.x > 0)
-            faceRight = true;
-        if (moveDir.x < 0)
-            faceRight = false;
-        // Debug.Log(moveDir);
+        MoveDir = PlayerGameInput.GetMoveDir();
+        if (MoveDir.x > 0)
+            FaceRight = true;
+        if (MoveDir.x < 0)
+            FaceRight = false;
+        // Debug.Log(MoveDir);
     }
     private void Move() {
-        // _rigidbody.AddForce(moveDir * MoveSpeed * Time.deltaTime, ForceMode2D.Force);
-        // _transform.Translate(moveDir * MoveSpeed * Time.deltaTime, Space.World);
+        // 正常移动
         if (!onHook && Bullet_Timer == 0) {
             _rigidbody.freezeRotation = true;
-            _rigidbody.velocity = new Vector2(moveDir.x * MoveSpeed, _rigidbody.velocity.y);
+            _rigidbody.velocity = new Vector2(MoveDir.normalized.x * StartSpeed.Evaluate(moveTimer) * MoveSpeed, _rigidbody.velocity.y);
             transform.rotation = Quaternion.identity;
         }
-
-        if (onHook) {
-            _rigidbody.freezeRotation = false;
-            if (justHook) {
-                _rigidbody.velocity = velocity_beforeHook;
-                justHook = false;
-            }
-            transform.up = NearestHook.transform.position - transform.position;
-        }
-        if (_rigidbody.velocity.magnitude > Max_Velocity) {
-            _rigidbody.velocity = _rigidbody.velocity.normalized * Max_Velocity;
+        // 限制速度
+        if (_rigidbody.velocity.y > y_Max_Velocity) {
+            _rigidbody.velocity = new Vector2(_rigidbody.velocity.x, y_Max_Velocity);
         }
     }
+    private void MoveTimer() {
+        deltaMoveDir = MoveDir - lastMoveDir;
+
+        if (StartMoveTime == 0 || EndMoveTime == 0) {
+            Debug.LogError("StartMoveTime and EndMoveTime cannot be 0!");
+            return;
+        }
+        if ((deltaMoveDir.x >= 0 && MoveDir.x > 0) || (deltaMoveDir.x <= 0 && MoveDir.x < 0)) { // 起步阶段
+            if (moveTimer < 1)
+                moveTimer += Time.fixedDeltaTime / StartMoveTime;
+            else
+                moveTimer = 1;
+        }
+        else if ((deltaMoveDir.x <= 0 && MoveDir.x > 0) || (deltaMoveDir.x >= 0 && MoveDir.x < 0)) { // 停止阶段
+            if (moveTimer > 0)
+                moveTimer -= Time.fixedDeltaTime / EndMoveTime;
+            else
+                moveTimer = 0;
+        }
+
+        if (MoveDir == Vector2.zero)
+            moveTimer = 0;
+        lastMoveDir = MoveDir;
+    }
+
     public bool Jump() {
         // jumpInteract = PlayerGameInput.GetJumpInteraction();
         // if (jumpInteract > 0) {
@@ -237,7 +262,7 @@ public class PlayerController : MonoBehaviour {
         if (carriedNPC == null) return;
         if (PlayerGameInput.GetThrowInteraction() > 0 && canCarryNPC && !allowThrowCube) {
             carriedNPC.GetComponent<Rigidbody2D>().gravityScale = 0;
-            carriedNPC.transform.position = _transform.position + new Vector3((faceRight ? (-offset_NpcToPlayer) : offset_NpcToPlayer), 0, 0);
+            carriedNPC.transform.position = _transform.position + new Vector3((FaceRight ? (-offset_NpcToPlayer) : offset_NpcToPlayer), 0, 0);
         }
         else {
             carriedNPC.GetComponent<Rigidbody2D>().gravityScale = 6;
@@ -245,15 +270,16 @@ public class PlayerController : MonoBehaviour {
     }
     private void ThrowCube() {
         delta_ThrowInteraction = PlayerGameInput.GetThrowInteraction() - lastThrowInteraction;
+        Vector2 ArrowDir = PlayerGameInput.GetArrowDir();
         if (PlayerGameInput.GetThrowInteraction() > 0.9f && canThrowCube) {
             Time.timeScale = 0.1f;
             Time.fixedDeltaTime = 0.02f * Time.timeScale;
             onBulletTime = true;
             Bullet_Timer++;
             Arrow.SetActive(true);
-            if (moveDir != Vector2.zero)
-                Arrow.transform.up = moveDir;
-            else if (faceRight)
+            if (ArrowDir != Vector2.zero)
+                Arrow.transform.up = ArrowDir;
+            else if (FaceRight)
                 Arrow.transform.up = Vector2.right;
             else
                 Arrow.transform.up = Vector2.left;
@@ -263,9 +289,9 @@ public class PlayerController : MonoBehaviour {
             currentCube.Player = gameObject;
             Rigidbody2D cube_rigidbody = currentCube.gameObject.GetComponent<Rigidbody2D>();
             if (cube_rigidbody != null) {
-                if (moveDir != Vector2.zero)
-                    cube_rigidbody.AddForce(moveDir * ThrowForce, ForceMode2D.Impulse);
-                else if (faceRight)
+                if (ArrowDir != Vector2.zero)
+                    cube_rigidbody.AddForce(ArrowDir * ThrowForce, ForceMode2D.Impulse);
+                else if (FaceRight)
                     cube_rigidbody.AddForce(Vector2.right * ThrowForce, ForceMode2D.Impulse);
                 else
                     cube_rigidbody.AddForce(Vector2.left * ThrowForce, ForceMode2D.Impulse);
@@ -368,8 +394,8 @@ public class PlayerController : MonoBehaviour {
             if (cols.Length != 0) {
                 foreach (var col in cols) {
                     float currentDistance = Vector2.Distance(col.gameObject.transform.position, transform.position);
-                    if ((faceRight && col.gameObject.transform.position.x < _transform.position.x) || 
-                        (!faceRight && col.gameObject.transform.position.x > _transform.position.x) || 
+                    if ((FaceRight && col.gameObject.transform.position.x < _transform.position.x) || 
+                        (!FaceRight && col.gameObject.transform.position.x > _transform.position.x) || 
                         (col.gameObject.transform.position.y <= _transform.position.y) || 
                         (currentDistance < Min_RopeLength))
                         continue;
@@ -398,13 +424,13 @@ public class PlayerController : MonoBehaviour {
             Hang_Time++;
             // // 上下攀爬
             Vector2 player_hook_dir = NearestHook.transform.position - transform.position;
-            if (moveDir.y > 0 && transform.position.y < NearestHook.transform.position.y && player_hook_dir.magnitude > Min_RopeLength) 
+            if (MoveDir.y > 0 && transform.position.y < NearestHook.transform.position.y && player_hook_dir.magnitude > Min_RopeLength) 
                 transform.Translate(player_hook_dir * ClimbSpeed * Time.deltaTime);
-            if (moveDir.y < 0 && transform.position.y < NearestHook.transform.position.y && player_hook_dir.magnitude < Max_RopeLength) 
+            if (MoveDir.y < 0 && transform.position.y < NearestHook.transform.position.y && player_hook_dir.magnitude < Max_RopeLength) 
                 transform.Translate(-player_hook_dir * ClimbSpeed * Time.deltaTime);
             // // 左右晃动
             if (transform.position.y < NearestHook.transform.position.y) {
-                Vector2 swingDir = new Vector2(moveDir.x, 0);
+                Vector2 swingDir = new Vector2(MoveDir.x, 0);
                 _rigidbody.AddForce(swingDir * SwingForce * Time.deltaTime, ForceMode2D.Force);
             }
 
@@ -433,6 +459,16 @@ public class PlayerController : MonoBehaviour {
         }
         lastHookInteraction = PlayerGameInput.GetHookInteraction();
     }
+    private void OnHook() {
+        if (onHook) {
+            _rigidbody.freezeRotation = false;
+            if (justHook) {
+                _rigidbody.velocity = velocity_beforeHook;
+                justHook = false;
+            }
+            transform.up = NearestHook.transform.position - transform.position;
+        }
+    }
     
     // 重置角色状态（不包括属性）
     public void ResetStatus() {
@@ -446,7 +482,7 @@ public class PlayerController : MonoBehaviour {
         onBulletTime = false;
         onHook = false;
 
-        moveDir = Vector2.zero;
+        MoveDir = Vector2.zero;
 
         CubeCDTimer = 150;
         Bullet_Timer = 0;
