@@ -32,6 +32,7 @@ public class PlayerController : MonoBehaviour
     public float x_Max_Velocity;
     public float x_basicLimitDecreaseRate;
     public float x_limitDecreaseRate;
+    public float x_decreaseRateWithoutControl;
     public float y_Max_Velocity;
     public float Max_Velocity;
     #endregion
@@ -106,6 +107,7 @@ public class PlayerController : MonoBehaviour
     public bool AllowLink = false;
     public bool allowLink { get { return AllowLink; } set { AllowLink = value; } }
     public bool onHook;
+    public bool JustReleaseHook;
     public float HookCircleRadius;
     public float SwingForce;
     [Range(0, 250)]
@@ -205,20 +207,25 @@ public class PlayerController : MonoBehaviour
             _rigidbody.gravityScale = oriGravity;
             _transform.rotation = Quaternion.identity;
             // 预测速度
-            if (playerVelocity.y < 0)
-            {
-
-            }
             playerVelocity = new Vector2(SpeedCurve.Evaluate(moveTimer) * MoveSpeed, _rigidbody.velocity.y);
             // 限制速度（仅限在空中）
             if (!OnGround)
             {
                 // x 递减至最大速度
-                if (Mathf.Abs(_rigidbody.velocity.x) > x_Max_Velocity)
+                if ((Mathf.Abs(_rigidbody.velocity.x) > x_Max_Velocity) && _rigidbody.velocity.x != 0)
                 {
                     playerVelocity = _rigidbody.velocity + new Vector2((((_rigidbody.velocity.x > 0) ? -x_basicLimitDecreaseRate : x_basicLimitDecreaseRate) + MoveDir.normalized.x * x_limitDecreaseRate) * Time.deltaTime, 0);
                 }
-
+                if (OnGround || Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.D))
+                {
+                    JustReleaseHook = false;
+                }
+                // 松开钩子没有操作时
+                if (JustReleaseHook && _rigidbody.velocity.x != 0)
+                {
+                    playerVelocity = _rigidbody.velocity + new Vector2(((_rigidbody.velocity.x > 0) ? -x_decreaseRateWithoutControl : x_decreaseRateWithoutControl) * Time.deltaTime, 0);
+                }
+                
                 // y 直接限制最大速度
                 if (_rigidbody.velocity.y < -y_Max_Velocity)
                 {
@@ -590,6 +597,7 @@ public class PlayerController : MonoBehaviour
                 // Destroy (currentHook);
                 Hang_Time = 0;
                 NearestHook = null;
+                JustReleaseHook = true;
             }
             if (Hang_Time >= 250)
             {
@@ -599,6 +607,7 @@ public class PlayerController : MonoBehaviour
                 Hang_Time = 0;
                 Hook_CD_Time = 0;
                 NearestHook = null;
+                JustReleaseHook = true;
             }
         }
         // 可视化Rope
