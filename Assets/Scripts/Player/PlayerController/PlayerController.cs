@@ -7,8 +7,8 @@ public class PlayerController : MonoBehaviour
     // 人物未死亡，只是不能控制
     public bool isControlled = true;
 
-    [Header("Game Input")]
     #region Game Input
+    [Header("Game Input")]
     public GameInput PlayerGameInput;
     public Dropdown dropdown;
     #endregion
@@ -33,7 +33,9 @@ public class PlayerController : MonoBehaviour
     public float x_basicLimitDecreaseRate;
     public float x_limitDecreaseRate;
     public float y_Max_Velocity;
+    #endregion
 
+    #region Jump Properties
     [Header("Jump")]
     public float JumpSpeed;
     public AnimationCurve GravityCurve;
@@ -43,14 +45,26 @@ public class PlayerController : MonoBehaviour
     public bool AllowJump { get; set; } = false;
     public bool SecJump { get; set; } = false;
 
+    private bool jumpInteraction = false;
+    private float jumpInteraction_CDTimer;
+    private bool startjumpInteraction_CDTimer = false;
+    // 土狼时间
+    private bool startCoyoteTimer = false;
+    private float coyoteTimer = 0;
+    // 跳跃缓冲
+    private bool startJumpBufferTimer = false;
+    private float jumpBufferTimer = 0;
+
     [Header("Is On Ground")]
     public float distance_toGround;
     private Vector2 offset_toGroundRay;
     public bool OnGround { get; set; }
+    private bool lastOnGround = true;
+    private bool just_OnGround = false;
     #endregion
 
-    [Header("Throw Cube")]
     #region Public Throw Cube
+    [Header("Throw Cube")]
     public bool allowThrowCube;
     public GameObject CubePrefab;
     public Transform ThrowPos;
@@ -164,9 +178,12 @@ public class PlayerController : MonoBehaviour
     }
     private void FixedUpdate()
     {
-        CubeTimer();
-        
         MoveTimer();
+        JumpBufferTimer();
+        CoyoteTimer();
+        JumpInteraction_CDTimer();
+
+        CubeTimer();
     }
 
     private void GetMoveDir()
@@ -249,31 +266,92 @@ public class PlayerController : MonoBehaviour
         delta_JumpInteraction = PlayerGameInput.GetJumpInteraction() - lastJumpInteraction;
         if (OnGround)
         {
-            AllowJump = true;
             _rigidbody.gravityScale = oriGravity;
         }
         else
         {
-            AllowJump = false;
             _rigidbody.gravityScale = GravityCurve.Evaluate(Mathf.Abs(_rigidbody.velocity.y) / JumpSpeed) * oriGravity;
         }
-        if (delta_JumpInteraction > 0 && (AllowJump || SecJump))
+        // 跳跃控制
+        // 土狼时间（当OnGround为false时，给予缓冲）
+        if (just_OnGround)
         {
-            JumpAction();
-            AllowJump = false;
-            SecJump = false;
+            startCoyoteTimer = true;
+        }
+        if (coyoteTimer != 0 && delta_JumpInteraction > 0)
+        {
+            jumpInteraction = true;
+        }
+        // 触地判断缓冲（当delta_JumpInteraction > 0时，给予缓冲判断是否OnGround）
+        if (delta_JumpInteraction > 0)
+        {
+            startJumpBufferTimer = true;
+        }
+        if (jumpBufferTimer != 0 && OnGround)
+        {
+            jumpInteraction = true;
+        }
+        // 执行跳跃动作
+        if (jumpInteraction)
+        {
+            if (jumpInteraction_CDTimer == 0)
+            {
+                JumpAction();
+                startjumpInteraction_CDTimer = true;
+            }
+            jumpInteraction = false;
+            
             lastJumpInteraction = PlayerGameInput.GetJumpInteraction();
             return true;
         }
         lastJumpInteraction = PlayerGameInput.GetJumpInteraction();
         return false;
     }
+    private void CoyoteTimer()
+    {
+        if (startCoyoteTimer)
+        {
+            coyoteTimer++;
+            if (coyoteTimer >= 0.2f / Time.fixedDeltaTime)
+            {
+                coyoteTimer = 0;
+                startCoyoteTimer = false;
+            }
+        }
+    }
+    private void JumpBufferTimer()
+    {
+        if (startJumpBufferTimer)
+        {
+            jumpBufferTimer++;
+            if (jumpBufferTimer >= 0.1f / Time.fixedDeltaTime)
+            {
+                jumpBufferTimer = 0;
+                startJumpBufferTimer = false;
+            }
+        }
+    }
+    private void JumpInteraction_CDTimer()
+    {
+        if (startjumpInteraction_CDTimer)
+        {
+            jumpInteraction_CDTimer++;
+            if (jumpInteraction_CDTimer >= 0.25f / Time.fixedDeltaTime)
+            {
+                jumpInteraction_CDTimer = 0;
+                startjumpInteraction_CDTimer = false;
+            }
+        }
+    }
+
     private void IsOnGround()
     {
         OnGround = (Physics2D.Raycast(transform.position, Vector2.down, distance_toGround, 1 << LayerMask.NameToLayer("Ground")) ||
                     Physics2D.Raycast(transform.position + (Vector3)offset_toGroundRay, Vector2.down, distance_toGround, 1 << LayerMask.NameToLayer("Ground")) ||
                     Physics2D.Raycast(transform.position - (Vector3)offset_toGroundRay, Vector2.down, distance_toGround, 1 << LayerMask.NameToLayer("Ground"))) &&
                     _rigidbody.velocity.y <= 0.1;
+        just_OnGround = (lastOnGround == true && OnGround == false) ? true : false;
+        lastOnGround = OnGround;
     }
     private void JumpAction()
     {
