@@ -1,32 +1,71 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-public class PlayerController : MonoBehaviour {
+public class PlayerController : MonoBehaviour
+{
 
     // 人物未死亡，只是不能控制
     public bool isControlled = true;
 
-    [Header("Game Input")]
     #region Game Input
+    [Header("Game Input")]
     public GameInput PlayerGameInput;
     public Dropdown dropdown;
     #endregion
 
+    #region Move Properties
+    private Vector2 deltaMoveDir;
+    private Vector2 lastMoveDir;
+    public Vector2 MoveDir { get; set; }
+    public bool FaceRight { get; set; } = true;
     [Header("Move")]
-    #region Public Move Properties
     public float MoveSpeed;
-    private float normalSpeed;
-    public float NormalSpeed {
-        get { return normalSpeed; }
-    }
-    public float JumpForce;
-    public float distance_toGround;
-    private Vector2 offset_toGroundRay;
+    public float NormalSpeed { get; set; }
+    public float OutSideSpeed { get; set; }
+    public AnimationCurve SpeedCurve;
+    public float StartMoveTime;
+    public float EndMoveTime;
+    [Range(-1, 1)]
+    public float moveTimer;
+
+    public Vector2 playerVelocity = Vector2.zero;
+    public float x_Max_Velocity;
+    public float x_basicLimitDecreaseRate;
+    public float x_limitDecreaseRate;
+    public float y_Max_Velocity;
     public float Max_Velocity;
     #endregion
 
-    [Header("Throw Cube")]
+    #region Jump Properties
+    [Header("Jump")]
+    public float JumpSpeed;
+    public AnimationCurve GravityCurve;
+    private float oriGravity;
+    private float delta_JumpInteraction;
+    private float lastJumpInteraction = 0;
+    public bool AllowJump { get; set; } = false;
+    public bool SecJump { get; set; } = false;
+
+    private bool jumpInteraction = false;
+    private float jumpInteraction_CDTimer;
+    private bool startjumpInteraction_CDTimer = false;
+    // 土狼时间
+    private bool startCoyoteTimer = false;
+    private float coyoteTimer = 0;
+    // 跳跃缓冲
+    private bool startJumpBufferTimer = false;
+    private float jumpBufferTimer = 0;
+
+    [Header("Is On Ground")]
+    public float distance_toGround;
+    private Vector2 offset_toGroundRay;
+    public bool OnGround { get; set; }
+    private bool lastOnGround = true;
+    private bool just_OnGround = false;
+    #endregion
+
     #region Public Throw Cube
+    [Header("Throw Cube")]
     public bool allowThrowCube;
     public GameObject CubePrefab;
     public Transform ThrowPos;
@@ -49,13 +88,23 @@ public class PlayerController : MonoBehaviour {
     public float offset_NpcToPlayer;
     #endregion
 
+    [Header("Throw Cube")]
+    #region Throw Cube
+    private bool canThrowCube = true;
+    private Cube currentCube;
+    private float lastThrowInteraction = 0;
+    private float delta_ThrowInteraction;
+    private SpriteRenderer sprite;
+    #endregion
+
+    [Header("Flash")]
+    private bool FlashOver = true;
 
     [Header("Link")]
     #region Link Properties
     // Ability Allowance
     public bool AllowLink = false;
     public bool allowLink { get { return AllowLink; } set { AllowLink = value; } }
-    // [HideInInspector]
     public bool onHook;
     public float HookCircleRadius;
     public float SwingForce;
@@ -68,54 +117,6 @@ public class PlayerController : MonoBehaviour {
     public float Min_RopeLength;
     public LineRenderer Rope;
     #endregion
-    
-
-
-    [Header("Move")]
-    #region Move Properties
-
-    private Vector2 moveDir;
-    public Vector2 MoveDir {
-        get {return moveDir;}
-    }
-    private bool faceRight = true;
-    public bool FaceRight {
-        get {return this.faceRight;}
-        set { this.faceRight = value; }
-    }
-    #endregion
-
-    [Header("Jump")]
-    #region Jump Properties
-    private bool onGround;
-    private float delta_JumpInteraction;
-    private float lastJumpInteraction = 0;
-    public bool OnGround {
-        get {return onGround;}
-    }
-    private bool allowJump = false;
-    public bool AllowJump {
-        get {return this.allowJump;}
-        set {allowJump = value;}
-    }
-    private bool secJump = false;
-    public bool SecJump {
-        get {return this.secJump;}
-        set {secJump = value;}
-    }
-    #endregion
-
-    [Header("Throw Cube")]
-    #region Throw Cube
-    private bool canThrowCube = true;
-    private Cube currentCube;
-    private float lastThrowInteraction = 0;
-    private float delta_ThrowInteraction;
-    private SpriteRenderer sprite;
-    #endregion
-
-    [Header("Flash")]
-    private bool FlashOver = true;
 
     [Header("Hook")]
     #region Hook
@@ -134,28 +135,34 @@ public class PlayerController : MonoBehaviour {
     private PlayerUnit _unit;
     #endregion
 
-    private void Awake() {
+    private void Awake()
+    {
         _rigidbody = gameObject.GetComponent<Rigidbody2D>();
         _transform = gameObject.GetComponent<Transform>();
         _unit = gameObject.GetComponent<PlayerUnit>();
         sprite = gameObject.GetComponent<SpriteRenderer>();
-        normalSpeed = MoveSpeed;
+        NormalSpeed = MoveSpeed;
+        oriGravity = _rigidbody.gravityScale;
         offset_toGroundRay.x = gameObject.GetComponent<BoxCollider2D>().bounds.size.x / 2;
     }
-    private void Update() {
+    private void Update()
+    {
         if (isControlled && !_unit.IsDead)
             GetMoveDir();
     }
-    private void LateUpdate() {
+    private void LateUpdate()
+    {
         IsOnGround();
         // 处于不允许玩家控制阶段
-        if (!isControlled) {
+        if (!isControlled)
+        {
             _rigidbody.velocity = new Vector2(0, _rigidbody.velocity.y);
             ResetStatus();
             return;
         }
         // 处于允许玩家控制阶段
-        if (_unit.IsDead == false) {
+        if (_unit.IsDead == false)
+        {
             Move();
             Jump();
             CheckCubeCD();
@@ -166,105 +173,249 @@ public class PlayerController : MonoBehaviour {
             Flash();
             if (allowLink)
                 GetHook();
+            OnHook();
         }
     }
-    private void FixedUpdate() {
-        this.CubeTimer();
+    private void FixedUpdate()
+    {
+        MoveTimer();
+        JumpBufferTimer();
+        CoyoteTimer();
+        JumpInteraction_CDTimer();
+
+        CubeTimer();
     }
 
-    private void GetMoveDir() {
-        moveDir = PlayerGameInput.GetMoveDir();
-        if (moveDir.x > 0)
-            faceRight = true;
-        if (moveDir.x < 0)
-            faceRight = false;
-        // Debug.Log(moveDir);
+    private void GetMoveDir()
+    {
+        MoveDir = PlayerGameInput.GetMoveDir();
+        if (MoveDir.x > 0)
+            FaceRight = true;
+        if (MoveDir.x < 0)
+            FaceRight = false;
+        // Debug.Log(MoveDir);
     }
-    private void Move() {
-        // _rigidbody.AddForce(moveDir * MoveSpeed * Time.deltaTime, ForceMode2D.Force);
-        // _transform.Translate(moveDir * MoveSpeed * Time.deltaTime, Space.World);
-        if (!onHook && Bullet_Timer == 0) {
+    private void Move()
+    {
+        playerVelocity = _rigidbody.velocity;
+        // 正常移动
+        if (!onHook && Bullet_Timer == 0)
+        {
             _rigidbody.freezeRotation = true;
-            _rigidbody.velocity = new Vector2(moveDir.x * MoveSpeed, _rigidbody.velocity.y);
-            transform.rotation = Quaternion.identity;
-        }
+            _rigidbody.gravityScale = oriGravity;
+            _transform.rotation = Quaternion.identity;
+            // 预测速度
+            if (playerVelocity.y < 0)
+            {
 
-        if (onHook) {
-            _rigidbody.freezeRotation = false;
-            if (justHook) {
-                _rigidbody.velocity = velocity_beforeHook;
-                justHook = false;
             }
-            transform.up = NearestHook.transform.position - transform.position;
-        }
-        if (_rigidbody.velocity.magnitude > Max_Velocity) {
-            _rigidbody.velocity = _rigidbody.velocity.normalized * Max_Velocity;
-        }
-    }
-    public bool Jump() {
-        // jumpInteract = PlayerGameInput.GetJumpInteraction();
-        // if (jumpInteract > 0) {
-        //     _rigidbody.AddForce(Vector2.up * JumpForce, ForceMode2D.Impulse);
-        // }
-        delta_JumpInteraction = PlayerGameInput.GetJumpInteraction() - lastJumpInteraction;
-        if (onGround) 
-            allowJump = true;
-        else
-            allowJump = false;
-        if (delta_JumpInteraction > 0 && (allowJump || secJump)) {
-            JumpAction();
+            playerVelocity = new Vector2(SpeedCurve.Evaluate(moveTimer) * MoveSpeed, _rigidbody.velocity.y);
+            // 限制速度（仅限在空中）
+            if (!OnGround)
+            {
+                // x 递减至最大速度
+                if (Mathf.Abs(_rigidbody.velocity.x) > x_Max_Velocity)
+                {
+                    playerVelocity = _rigidbody.velocity + new Vector2((((_rigidbody.velocity.x > 0) ? -x_basicLimitDecreaseRate : x_basicLimitDecreaseRate) + MoveDir.normalized.x * x_limitDecreaseRate) * Time.deltaTime, 0);
+                }
 
-            allowJump = false;
-            secJump = false;
+                // y 直接限制最大速度
+                if (_rigidbody.velocity.y < -y_Max_Velocity)
+                {
+                    playerVelocity = new Vector2(playerVelocity.x, -y_Max_Velocity);
+                }
+            }
+            _rigidbody.velocity = playerVelocity;
+        }
+        
+    }
+    private void MoveTimer()
+    {
+        deltaMoveDir = MoveDir - lastMoveDir;
+
+        if (StartMoveTime == 0 || EndMoveTime == 0)
+        {
+            Debug.LogError("StartMoveTime and EndMoveTime cannot be 0!");
+            return;
+        }
+        
+        if (deltaMoveDir.x >= 0 && MoveDir.x >= 1)
+        {
+            if (moveTimer < 1 && moveTimer >= 0) // 向右起步
+                moveTimer += Time.fixedDeltaTime / StartMoveTime;
+            else // 向右调头
+                moveTimer += Time.fixedDeltaTime / EndMoveTime;
+        }
+        
+        else if (deltaMoveDir.x <= 0 && MoveDir.x <= -1)
+        {
+            if (moveTimer > -1 && moveTimer <= 0) // 向左起步
+                moveTimer -= Time.fixedDeltaTime / StartMoveTime;
+            else // 向左调头
+                moveTimer -= Time.fixedDeltaTime / EndMoveTime;
+        }
+        // 停止阶段
+        else if (moveTimer != 0)
+        {
+            // 向右停止
+            if (deltaMoveDir.x <= 0 && MoveDir.x > 0)
+            {
+                if (moveTimer > 0)
+                    moveTimer -= Time.fixedDeltaTime / EndMoveTime;
+                moveTimer = Mathf.Clamp(moveTimer, 0, 1);
+            }
+            // 向左停止
+            else if (deltaMoveDir.x >= 0 && MoveDir.x < 0)
+            {
+                if (moveTimer < 0)
+                    moveTimer += Time.fixedDeltaTime / EndMoveTime;
+                moveTimer = Mathf.Clamp(moveTimer, -1, 0);
+            }
+        }
+        if (MoveDir == Vector2.zero && deltaMoveDir == Vector2.zero)
+            moveTimer = 0;
+        moveTimer = Mathf.Clamp(moveTimer, -1, 1);
+        lastMoveDir = MoveDir;
+    }
+
+    public bool Jump()
+    {
+        delta_JumpInteraction = PlayerGameInput.GetJumpInteraction() - lastJumpInteraction;
+        if (OnGround)
+        {
+            _rigidbody.gravityScale = oriGravity;
+        }
+        else
+        {
+            _rigidbody.gravityScale = GravityCurve.Evaluate(Mathf.Abs(_rigidbody.velocity.y) / JumpSpeed) * oriGravity;
+        }
+        // 跳跃控制
+        // 土狼时间（当OnGround为false时，给予缓冲）
+        if (just_OnGround)
+        {
+            startCoyoteTimer = true;
+        }
+        if (coyoteTimer != 0 && delta_JumpInteraction > 0)
+        {
+            jumpInteraction = true;
+        }
+        // 触地判断缓冲（当delta_JumpInteraction > 0时，给予缓冲判断是否OnGround）
+        if (delta_JumpInteraction > 0)
+        {
+            startJumpBufferTimer = true;
+        }
+        if (jumpBufferTimer != 0 && OnGround)
+        {
+            jumpInteraction = true;
+        }
+        // 执行跳跃动作
+        if (jumpInteraction)
+        {
+            if (jumpInteraction_CDTimer == 0)
+            {
+                JumpAction();
+                startjumpInteraction_CDTimer = true;
+            }
+            jumpInteraction = false;
+            
             lastJumpInteraction = PlayerGameInput.GetJumpInteraction();
             return true;
         }
         lastJumpInteraction = PlayerGameInput.GetJumpInteraction();
         return false;
     }
-    private void IsOnGround() {
-        onGround = (Physics2D.Raycast(transform.position, Vector2.down, distance_toGround, 1 << LayerMask.NameToLayer("Ground")) || 
-                    Physics2D.Raycast(transform.position + (Vector3)offset_toGroundRay, Vector2.down, distance_toGround, 1 << LayerMask.NameToLayer("Ground")) || 
-                    Physics2D.Raycast(transform.position - (Vector3)offset_toGroundRay, Vector2.down, distance_toGround, 1 << LayerMask.NameToLayer("Ground"))) && 
-                    _rigidbody.velocity.y <= 0.1;
-    }
-    private void JumpAction() {
-        _rigidbody.velocity = new Vector2(_rigidbody.velocity.x, 0);
-        _rigidbody.velocity += new Vector2(0, JumpForce);
-    }
-    private void CarryNPC() {
-        if (carriedNPC == null) return;
-        if (PlayerGameInput.GetThrowInteraction() > 0 && canCarryNPC && !allowThrowCube) {
-            carriedNPC.GetComponent<Rigidbody2D>().gravityScale = 0;
-            carriedNPC.transform.position = _transform.position + new Vector3((faceRight ? (-offset_NpcToPlayer) : offset_NpcToPlayer), 0, 0);
+    private void CoyoteTimer()
+    {
+        if (startCoyoteTimer)
+        {
+            coyoteTimer++;
+            if (coyoteTimer >= 0.2f / Time.fixedDeltaTime)
+            {
+                coyoteTimer = 0;
+                startCoyoteTimer = false;
+            }
         }
-        else {
+    }
+    private void JumpBufferTimer()
+    {
+        if (startJumpBufferTimer)
+        {
+            jumpBufferTimer++;
+            if (jumpBufferTimer >= 0.1f / Time.fixedDeltaTime)
+            {
+                jumpBufferTimer = 0;
+                startJumpBufferTimer = false;
+            }
+        }
+    }
+    private void JumpInteraction_CDTimer()
+    {
+        if (startjumpInteraction_CDTimer)
+        {
+            jumpInteraction_CDTimer++;
+            if (jumpInteraction_CDTimer >= 0.25f / Time.fixedDeltaTime)
+            {
+                jumpInteraction_CDTimer = 0;
+                startjumpInteraction_CDTimer = false;
+            }
+        }
+    }
+
+    private void IsOnGround()
+    {
+        OnGround = (Physics2D.Raycast(transform.position, Vector2.down, distance_toGround, 1 << LayerMask.NameToLayer("Ground")) ||
+                    Physics2D.Raycast(transform.position + (Vector3)offset_toGroundRay, Vector2.down, distance_toGround, 1 << LayerMask.NameToLayer("Ground")) ||
+                    Physics2D.Raycast(transform.position - (Vector3)offset_toGroundRay, Vector2.down, distance_toGround, 1 << LayerMask.NameToLayer("Ground"))) &&
+                    _rigidbody.velocity.y <= 0.1;
+        just_OnGround = (lastOnGround == true && OnGround == false) ? true : false;
+        lastOnGround = OnGround;
+    }
+    private void JumpAction()
+    {
+        _rigidbody.velocity = new Vector2(_rigidbody.velocity.x, 0);
+        _rigidbody.velocity += new Vector2(0, JumpSpeed);
+    }
+    private void CarryNPC()
+    {
+        if (carriedNPC == null) return;
+        if (PlayerGameInput.GetThrowInteraction() > 0 && canCarryNPC && !allowThrowCube)
+        {
+            carriedNPC.GetComponent<Rigidbody2D>().gravityScale = 0;
+            carriedNPC.transform.position = _transform.position + new Vector3((FaceRight ? (-offset_NpcToPlayer) : offset_NpcToPlayer), 0, 0);
+        }
+        else
+        {
             carriedNPC.GetComponent<Rigidbody2D>().gravityScale = 6;
         }
     }
-    private void ThrowCube() {
+    private void ThrowCube()
+    {
         delta_ThrowInteraction = PlayerGameInput.GetThrowInteraction() - lastThrowInteraction;
-        if (PlayerGameInput.GetThrowInteraction() > 0.9f && canThrowCube) {
+        Vector2 ArrowDir = PlayerGameInput.GetArrowDir();
+        if (PlayerGameInput.GetThrowInteraction() > 0.9f && canThrowCube)
+        {
             Time.timeScale = 0.1f;
             Time.fixedDeltaTime = 0.02f * Time.timeScale;
             onBulletTime = true;
             Bullet_Timer++;
             Arrow.SetActive(true);
-            if (moveDir != Vector2.zero)
-                Arrow.transform.up = moveDir;
-            else if (faceRight)
+            if (ArrowDir != Vector2.zero)
+                Arrow.transform.up = ArrowDir;
+            else if (FaceRight)
                 Arrow.transform.up = Vector2.right;
             else
                 Arrow.transform.up = Vector2.left;
         }
-        if ((delta_ThrowInteraction < 0 || Bullet_Timer >= 150) && canThrowCube) {
+        if ((delta_ThrowInteraction < 0 || Bullet_Timer >= 150) && canThrowCube)
+        {
             currentCube = Instantiate(CubePrefab, ThrowPos.position, Quaternion.identity).GetComponent<Cube>();
             currentCube.Player = gameObject;
             Rigidbody2D cube_rigidbody = currentCube.gameObject.GetComponent<Rigidbody2D>();
-            if (cube_rigidbody != null) {
-                if (moveDir != Vector2.zero)
-                    cube_rigidbody.AddForce(moveDir * ThrowForce, ForceMode2D.Impulse);
-                else if (faceRight)
+            if (cube_rigidbody != null)
+            {
+                if (ArrowDir != Vector2.zero)
+                    cube_rigidbody.AddForce(ArrowDir * ThrowForce, ForceMode2D.Impulse);
+                else if (FaceRight)
                     cube_rigidbody.AddForce(Vector2.right * ThrowForce, ForceMode2D.Impulse);
                 else
                     cube_rigidbody.AddForce(Vector2.left * ThrowForce, ForceMode2D.Impulse);
@@ -279,7 +430,8 @@ public class PlayerController : MonoBehaviour {
         }
         lastThrowInteraction = PlayerGameInput.GetThrowInteraction();
     }
-    private void CubeTimer() {
+    private void CubeTimer()
+    {
         if (CubeCDTimer < 150)
             CubeCDTimer++;
         if (CubeCDTimer == 150 && FlashOver)
@@ -287,40 +439,50 @@ public class PlayerController : MonoBehaviour {
         else
             canThrowCube = false;
     }
-    private void CheckCubeCD() {
+    private void CheckCubeCD()
+    {
         Color Transparent = new Color(1, 1, 1, 0.5f);
         Color white = new Color(1, 1, 1, 1f);
-        if (CubeCDTimer < 150) {
+        if (CubeCDTimer < 150)
+        {
             sprite.color = Transparent;
         }
-        else {
+        else
+        {
             sprite.color = white;
         }
     }
-    private bool Flash() {
-        if (!canThrowCube && currentCube != null && CubeCDTimer > 10) {
-            if (delta_ThrowInteraction > 0) {
+    private bool Flash()
+    {
+        if (!canThrowCube && currentCube != null && CubeCDTimer > 10)
+        {
+            if (delta_ThrowInteraction > 0)
+            {
                 FlashOver = false;
                 // Effect
-                if (FlashEffect != null) {
+                if (FlashEffect != null)
+                {
                     trailRenderer.emitting = true;
                     Instantiate(FlashEffect, transform.position, Quaternion.identity);
                 }
                 // 什么都没有击中
-                if (!currentCube.HitEnemy && !currentCube.HitInteractiveItem && !currentCube.HitGround) {
+                if (!currentCube.HitEnemy && !currentCube.HitInteractiveItem && !currentCube.HitGround)
+                {
                     gameObject.transform.position = currentCube.gameObject.transform.position;
                     Destroy(currentCube.gameObject);
                     _rigidbody.velocity = Vector2.zero;
                 }
                 // 击中墙壁，自动跳起
-                if (currentCube.HitGround) {
+                if (currentCube.HitGround)
+                {
                     gameObject.transform.position = currentCube.gameObject.transform.position;
                     CubeCDTimer = 140;
                     JumpAction();
                     Destroy(currentCube.gameObject);
                 }
                 // 击中敌人，自动跳起
-                if (currentCube.HitEnemy) {
+                if (currentCube.HitEnemy)
+                {
                     currentCube.target.GetComponent<EnemyUnit>().GetHurt(1);
                     gameObject.transform.position = currentCube.gameObject.transform.position;
                     CubeCDTimer = 140;
@@ -328,17 +490,19 @@ public class PlayerController : MonoBehaviour {
                     Destroy(currentCube.gameObject);
                 }
                 // 击中可交互物体
-                if (currentCube.HitInteractiveItem) {
+                if (currentCube.HitInteractiveItem)
+                {
                     currentCube.InteractiveItem.GetComponent<InterActiveItem>().InterAction();
                     gameObject.transform.position = currentCube.gameObject.transform.position;
                     CubeCDTimer = 140;
                     Destroy(currentCube.gameObject);
                 }
-                if (FlashEffect != null) {
+                if (FlashEffect != null)
+                {
                     Invoke("SetTrailRendererFalse", 0.1f);
                     Instantiate(FlashEffect, transform.position, Quaternion.identity);
                 }
-                secJump = false;
+                SecJump = false;
                 return true;
             }
         }
@@ -346,43 +510,52 @@ public class PlayerController : MonoBehaviour {
             FlashOver = true;
         return false;
     }
-    private void SetTrailRendererFalse() {
+    private void SetTrailRendererFalse()
+    {
         trailRenderer.emitting = false;
     }
-    private void GetHook() {
+    private void GetHook()
+    {
         delta_HookInteraction = PlayerGameInput.GetHookInteraction() - lastHookInteraction;
         nearestDistance = HookCircleRadius;
         if (Hook_CD_Time < 150)
             Hook_CD_Time++;
         if (!onHook)
             Rope.gameObject.SetActive(false);
-        if (!onGround && !onHook && Hook_CD_Time >= 150) {
-            if (NearestHook != null) {
+        if (!OnGround && !onHook && Hook_CD_Time >= 150)
+        {
+            if (NearestHook != null)
+            {
                 float Distance_nearestHook_Player = Vector2.Distance(NearestHook.transform.position, transform.position);
                 if (Distance_nearestHook_Player > HookCircleRadius)
                     NearestHook = null;
             }
             NearestHook = null;
             Collider2D[] cols = Physics2D.OverlapCircleAll(transform.position, HookCircleRadius, 1 << LayerMask.NameToLayer("Hook"));
-            if (cols.Length != 0) {
-                foreach (var col in cols) {
+            if (cols.Length != 0)
+            {
+                foreach (var col in cols)
+                {
                     float currentDistance = Vector2.Distance(col.gameObject.transform.position, transform.position);
-                    if ((faceRight && col.gameObject.transform.position.x < _transform.position.x) || 
-                        (!faceRight && col.gameObject.transform.position.x > _transform.position.x) || 
-                        (col.gameObject.transform.position.y <= _transform.position.y) || 
+                    if ((FaceRight && col.gameObject.transform.position.x < _transform.position.x) ||
+                        (!FaceRight && col.gameObject.transform.position.x > _transform.position.x) ||
+                        (col.gameObject.transform.position.y <= _transform.position.y) ||
                         (currentDistance < Min_RopeLength))
                         continue;
-                    if (nearestDistance > currentDistance) {
+                    if (nearestDistance > currentDistance)
+                    {
                         NearestHook = col.gameObject;
                         nearestDistance = currentDistance;
                     }
                 }
-                if (NearestHook == null) {
+                if (NearestHook == null)
+                {
                     return;
                 }
-                if (delta_HookInteraction > 0) {
+                if (delta_HookInteraction > 0)
+                {
                     onHook = true;
-                    secJump = false;
+                    SecJump = false;
                     velocity_beforeHook = _rigidbody.velocity;
                     justHook = true;
                     NearestHook.GetComponent<HingeJoint2D>().connectedBody = _rigidbody;
@@ -393,29 +566,33 @@ public class PlayerController : MonoBehaviour {
                 }
             }
         }
-        if (onHook && NearestHook != null) {
+        if (onHook && NearestHook != null)
+        {
             Hang_Time++;
             // // 上下攀爬
             Vector2 player_hook_dir = NearestHook.transform.position - transform.position;
-            if (moveDir.y > 0 && transform.position.y < NearestHook.transform.position.y && player_hook_dir.magnitude > Min_RopeLength) 
+            if (MoveDir.y > 0 && transform.position.y < NearestHook.transform.position.y && player_hook_dir.magnitude > Min_RopeLength)
                 transform.Translate(player_hook_dir * ClimbSpeed * Time.deltaTime);
-            if (moveDir.y < 0 && transform.position.y < NearestHook.transform.position.y && player_hook_dir.magnitude < Max_RopeLength) 
+            if (MoveDir.y < 0 && transform.position.y < NearestHook.transform.position.y && player_hook_dir.magnitude < Max_RopeLength)
                 transform.Translate(-player_hook_dir * ClimbSpeed * Time.deltaTime);
             // // 左右晃动
-            if (transform.position.y < NearestHook.transform.position.y) {
-                Vector2 swingDir = new Vector2(moveDir.x, 0);
+            if (transform.position.y < NearestHook.transform.position.y)
+            {
+                Vector2 swingDir = new Vector2(MoveDir.x, 0);
                 _rigidbody.AddForce(swingDir * SwingForce * Time.deltaTime, ForceMode2D.Force);
             }
 
             // 断开连接 (跳跃断开判定有点奇怪)
-            if (delta_HookInteraction < 0 || onGround || this.Flash()) {
+            if (delta_HookInteraction < 0 || OnGround || this.Flash())
+            {
                 onHook = false;
                 NearestHook.GetComponent<HingeJoint2D>().connectedBody = null;
                 // Destroy (currentHook);
                 Hang_Time = 0;
                 NearestHook = null;
             }
-            if (Hang_Time >= 250) {
+            if (Hang_Time >= 250)
+            {
                 onHook = false;
                 NearestHook.GetComponent<HingeJoint2D>().connectedBody = null;
                 // Destroy (currentHook);
@@ -425,16 +602,32 @@ public class PlayerController : MonoBehaviour {
             }
         }
         // 可视化Rope
-        if (onHook && NearestHook != null) {
+        if (onHook && NearestHook != null)
+        {
             Rope.gameObject.SetActive(true);
             Rope.SetPosition(0, transform.position);
             Rope.SetPosition(1, NearestHook.transform.position);
         }
         lastHookInteraction = PlayerGameInput.GetHookInteraction();
     }
-    
+    private void OnHook()
+    {
+        if (onHook)
+        {
+            _rigidbody.freezeRotation = false;
+            _rigidbody.gravityScale = oriGravity / 2;
+            if (justHook)
+            {
+                _rigidbody.velocity = velocity_beforeHook;
+                justHook = false;
+            }
+            transform.up = NearestHook.transform.position - transform.position;
+        }
+    }
+
     // 重置角色状态（不包括属性）
-    public void ResetStatus() {
+    public void ResetStatus()
+    {
         delta_HookInteraction = 0;
         delta_ThrowInteraction = 0;
         delta_JumpInteraction = 0;
@@ -445,7 +638,7 @@ public class PlayerController : MonoBehaviour {
         onBulletTime = false;
         onHook = false;
 
-        moveDir = Vector2.zero;
+        MoveDir = Vector2.zero;
 
         CubeCDTimer = 150;
         Bullet_Timer = 0;
@@ -455,17 +648,20 @@ public class PlayerController : MonoBehaviour {
         Hang_Time = 0;
         Hook_CD_Time = 150;
     }
-    public void SwitchGameInput() {
-        switch (dropdown.value) {
-            case 0 : PlayerGameInput = gameObject.GetComponent<PC_Input>(); break;
-            case 1 : PlayerGameInput = gameObject.GetComponent<XBox_Input>(); break;
+    public void SwitchGameInput()
+    {
+        switch (dropdown.value)
+        {
+            case 0: PlayerGameInput = gameObject.GetComponent<PC_Input>(); break;
+            case 1: PlayerGameInput = gameObject.GetComponent<XBox_Input>(); break;
         }
     }
 
-    private void OnDrawGizmosSelected() {
+    private void OnDrawGizmosSelected()
+    {
         Gizmos.color = new Color(1, 0, 0);
         Gizmos.DrawLine(transform.position, transform.position + new Vector3(0, -distance_toGround, 0));
         Gizmos.DrawLine(transform.position + (Vector3)offset_toGroundRay, transform.position + new Vector3(0, -distance_toGround, 0));
-        Gizmos.DrawWireSphere(transform.position, HookCircleRadius);
+        // Gizmos.DrawWireSphere(transform.position, HookCircleRadius);
     }
 }

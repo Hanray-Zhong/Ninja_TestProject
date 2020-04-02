@@ -19,6 +19,13 @@ public class XBox_Input : GameInput {
         inputDir = new Vector2(hl, vt);
         if (playerController.onBulletTime && inputDir == Vector2.zero)
             return moveDir;
+        moveDir = inputDir;
+        return moveDir;
+    }
+    public override Vector2 GetArrowDir() {
+        hl = Input.GetAxisRaw("XBox_Horizontal");
+        vt = Input.GetAxisRaw("XBox_Vertical");
+        inputDir = new Vector2(hl, vt);
         inputDir = inputDir.normalized;
         if (inputDir.x >= -0.3827f && inputDir.x < 0.3827f) {
             if (inputDir.y > 0) inputDir = new Vector2(0, 1);
@@ -42,8 +49,7 @@ public class XBox_Input : GameInput {
             inputDir = new Vector2(1, 0);
         }
         else inputDir = Vector2.zero;
-        moveDir = inputDir;
-        return moveDir;
+        return inputDir;
     }
     public override float GetJumpInteraction() {
         jump_interact = Input.GetAxis("Jump");
