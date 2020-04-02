@@ -25,7 +25,7 @@ public class PlayerController : MonoBehaviour
     public AnimationCurve SpeedCurve;
     public float StartMoveTime;
     public float EndMoveTime;
-    [Range(0, 1)]
+    [Range(-1, 1)]
     public float moveTimer;
 
     public Vector2 playerVelocity = Vector2.zero;
@@ -33,6 +33,7 @@ public class PlayerController : MonoBehaviour
     public float x_basicLimitDecreaseRate;
     public float x_limitDecreaseRate;
     public float y_Max_Velocity;
+    public float Max_Velocity;
     #endregion
 
     #region Jump Properties
@@ -142,7 +143,7 @@ public class PlayerController : MonoBehaviour
         sprite = gameObject.GetComponent<SpriteRenderer>();
         NormalSpeed = MoveSpeed;
         oriGravity = _rigidbody.gravityScale;
-        offset_toGroundRay.x = gameObject.GetComponent<CapsuleCollider2D>().bounds.size.x / 2;
+        offset_toGroundRay.x = gameObject.GetComponent<BoxCollider2D>().bounds.size.x / 2;
     }
     private void Update()
     {
@@ -201,9 +202,14 @@ public class PlayerController : MonoBehaviour
         if (!onHook && Bullet_Timer == 0)
         {
             _rigidbody.freezeRotation = true;
+            _rigidbody.gravityScale = oriGravity;
             _transform.rotation = Quaternion.identity;
             // 预测速度
-            playerVelocity = new Vector2(MoveDir.normalized.x * SpeedCurve.Evaluate(moveTimer) * MoveSpeed, _rigidbody.velocity.y);
+            if (playerVelocity.y < 0)
+            {
+
+            }
+            playerVelocity = new Vector2(SpeedCurve.Evaluate(moveTimer) * MoveSpeed, _rigidbody.velocity.y);
             // 限制速度（仅限在空中）
             if (!OnGround)
             {
@@ -214,9 +220,9 @@ public class PlayerController : MonoBehaviour
                 }
 
                 // y 直接限制最大速度
-                if (Mathf.Abs(_rigidbody.velocity.y) > y_Max_Velocity)
+                if (_rigidbody.velocity.y < -y_Max_Velocity)
                 {
-                    playerVelocity = new Vector2(playerVelocity.x, (_rigidbody.velocity.y > 0) ? y_Max_Velocity : -y_Max_Velocity);
+                    playerVelocity = new Vector2(playerVelocity.x, -y_Max_Velocity);
                 }
             }
             _rigidbody.velocity = playerVelocity;
@@ -232,20 +238,43 @@ public class PlayerController : MonoBehaviour
             Debug.LogError("StartMoveTime and EndMoveTime cannot be 0!");
             return;
         }
-        if ((deltaMoveDir.x >= 0 && MoveDir.x >= 1) || (deltaMoveDir.x <= 0 && MoveDir.x <= -1))
-        { // 起步阶段
-            if (moveTimer < 1)
+        
+        if (deltaMoveDir.x >= 0 && MoveDir.x >= 1)
+        {
+            if (moveTimer < 1 && moveTimer >= 0) // 向右起步
                 moveTimer += Time.fixedDeltaTime / StartMoveTime;
+            else // 向右调头
+                moveTimer += Time.fixedDeltaTime / EndMoveTime;
         }
-        else if (moveTimer != 0 && ((deltaMoveDir.x <= 0 && MoveDir.x > 0.3f) || (deltaMoveDir.x >= 0 && MoveDir.x < -0.3f)))
-        { // 停止阶段
-            if (moveTimer > 0)
+        
+        else if (deltaMoveDir.x <= 0 && MoveDir.x <= -1)
+        {
+            if (moveTimer > -1 && moveTimer <= 0) // 向左起步
+                moveTimer -= Time.fixedDeltaTime / StartMoveTime;
+            else // 向左调头
                 moveTimer -= Time.fixedDeltaTime / EndMoveTime;
         }
-
-        if (MoveDir == Vector2.zero)
+        // 停止阶段
+        else if (moveTimer != 0)
+        {
+            // 向右停止
+            if (deltaMoveDir.x <= 0 && MoveDir.x > 0)
+            {
+                if (moveTimer > 0)
+                    moveTimer -= Time.fixedDeltaTime / EndMoveTime;
+                moveTimer = Mathf.Clamp(moveTimer, 0, 1);
+            }
+            // 向左停止
+            else if (deltaMoveDir.x >= 0 && MoveDir.x < 0)
+            {
+                if (moveTimer < 0)
+                    moveTimer += Time.fixedDeltaTime / EndMoveTime;
+                moveTimer = Mathf.Clamp(moveTimer, -1, 0);
+            }
+        }
+        if (MoveDir == Vector2.zero && deltaMoveDir == Vector2.zero)
             moveTimer = 0;
-        moveTimer = Mathf.Clamp(moveTimer, 0, 1);
+        moveTimer = Mathf.Clamp(moveTimer, -1, 1);
         lastMoveDir = MoveDir;
     }
 
@@ -586,6 +615,7 @@ public class PlayerController : MonoBehaviour
         if (onHook)
         {
             _rigidbody.freezeRotation = false;
+            _rigidbody.gravityScale = oriGravity / 2;
             if (justHook)
             {
                 _rigidbody.velocity = velocity_beforeHook;

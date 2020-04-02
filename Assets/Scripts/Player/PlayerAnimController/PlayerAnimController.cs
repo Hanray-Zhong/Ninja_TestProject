@@ -32,7 +32,7 @@ public class PlayerAnimController : MonoBehaviour
         else spriteRenderer.flipX = false;
     }
     private void PlayMoveAnim() {
-        if (Mathf.Abs(playerRigidbody.velocity.x) > 1) {
+        if (Input.GetKey(KeyCode.D) || Input.GetKey(KeyCode.A)) {
             PlayerAnimator.SetBool("IsMoving", true);
         }
         else {
