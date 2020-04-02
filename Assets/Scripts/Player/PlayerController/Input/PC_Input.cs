@@ -1,7 +1,7 @@
 using UnityEngine;
 
 public class PC_Input : GameInput {
-    private Vector2 inputDir;
+    public Vector2 inputDir;
     private Vector2 moveDir;
     private float hl;
 	private float vt;

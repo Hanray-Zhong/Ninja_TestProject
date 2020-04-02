@@ -142,8 +142,7 @@ public class PlayerController : MonoBehaviour
         sprite = gameObject.GetComponent<SpriteRenderer>();
         NormalSpeed = MoveSpeed;
         oriGravity = _rigidbody.gravityScale;
-        offset_toGroundRay.x = gameObject.GetComponent<BoxCollider2D>().bounds.size.x / 2;
-        // distance_toGround = gameObject.GetComponent<BoxCollider2D>().bounds.size.y / 2 + 0.1f;
+        offset_toGroundRay.x = gameObject.GetComponent<CapsuleCollider2D>().bounds.size.x / 2;
     }
     private void Update()
     {
@@ -213,15 +212,7 @@ public class PlayerController : MonoBehaviour
                 {
                     playerVelocity = _rigidbody.velocity + new Vector2((((_rigidbody.velocity.x > 0) ? -x_basicLimitDecreaseRate : x_basicLimitDecreaseRate) + MoveDir.normalized.x * x_limitDecreaseRate) * Time.deltaTime, 0);
                 }
-                /*// 在空中时，速度不能瞬间变化
-                else if (Mathf.Abs(_rigidbody.velocity.x) < x_Max_Velocity)
-                {
-                    playerVelocity = _rigidbody.velocity + new Vector2(MoveDir.normalized.x * x_limitDecreaseRate * Time.deltaTime, 0);
-                    if (playerVelocity.x >= x_Max_Velocity)
-                    {
-                        playerVelocity = new Vector2((playerVelocity.x > 0) ? x_Max_Velocity : -x_Max_Velocity, playerVelocity.y);
-                    }
-                }*/
+
                 // y 直接限制最大速度
                 if (Mathf.Abs(_rigidbody.velocity.y) > y_Max_Velocity)
                 {
@@ -241,23 +232,20 @@ public class PlayerController : MonoBehaviour
             Debug.LogError("StartMoveTime and EndMoveTime cannot be 0!");
             return;
         }
-        if ((deltaMoveDir.x >= 0 && MoveDir.x > 0) || (deltaMoveDir.x <= 0 && MoveDir.x < 0))
+        if ((deltaMoveDir.x >= 0 && MoveDir.x >= 1) || (deltaMoveDir.x <= 0 && MoveDir.x <= -1))
         { // 起步阶段
             if (moveTimer < 1)
                 moveTimer += Time.fixedDeltaTime / StartMoveTime;
-            else
-                moveTimer = 1;
         }
-        else if ((deltaMoveDir.x <= 0 && MoveDir.x > 0) || (deltaMoveDir.x >= 0 && MoveDir.x < 0))
+        else if (moveTimer != 0 && ((deltaMoveDir.x <= 0 && MoveDir.x > 0.3f) || (deltaMoveDir.x >= 0 && MoveDir.x < -0.3f)))
         { // 停止阶段
             if (moveTimer > 0)
                 moveTimer -= Time.fixedDeltaTime / EndMoveTime;
-            else
-                moveTimer = 0;
         }
 
         if (MoveDir == Vector2.zero)
             moveTimer = 0;
+        moveTimer = Mathf.Clamp(moveTimer, 0, 1);
         lastMoveDir = MoveDir;
     }
 
