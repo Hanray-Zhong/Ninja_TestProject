@@ -29,7 +29,7 @@ public class NPCUnit : MonoBehaviour
             _rigidbody.velocity = _rigidbody.velocity.normalized * Max_Velocity;
         }
         if (canBeCarried) {
-            if (Mathf.Abs(playerTransform.position.x - _transform.position.x) < interactRadius) {
+            if (Mathf.Abs(playerTransform.position.x - _transform.position.x) < interactRadius && Mathf.Abs(playerTransform.position.y - _transform.position.y) < interactRadius) {
                 playerController.allowThrowCube = false;
                 playerController.canCarryNPC = true;
                 playerController.carriedNPC = gameObject;
