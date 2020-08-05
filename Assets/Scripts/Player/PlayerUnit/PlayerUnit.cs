@@ -56,6 +56,7 @@ public class PlayerUnit : MonoBehaviour
             sprite.color = alpha;
             // 物理清零
             _rigidbody.gravityScale = 0;
+            _rigidbody.constraints = RigidbodyConstraints2D.FreezePosition;
             _rigidbody.velocity = Vector2.zero;
             // 开始复活协程
             StartCoroutine(Resurrection());
@@ -84,9 +85,11 @@ public class PlayerUnit : MonoBehaviour
         Color unAlpha = new Color(1, 1, 1, 1);
         // 复活点
         if (ResurrectionPoint != null)
+        {
+            _rigidbody.constraints = RigidbodyConstraints2D.None;
             _transform.position = (Vector2)ResurrectionPoint.transform.position + new Vector2(0, 1);
+        }
         // 物理重置
-        Debug.Log(_rigidbody.IsSleeping());
         _rigidbody.gravityScale = oriGravityScale;
         _rigidbody.velocity = Vector2.zero;
         // 状态重置
@@ -97,7 +100,7 @@ public class PlayerUnit : MonoBehaviour
         // 播放复活动画
         
         // 消除死亡状态
-        yield return new WaitForSeconds(1f);
+        yield return new WaitForSeconds(0);
         isDead = false;
         canCoroutine = true;
     }
