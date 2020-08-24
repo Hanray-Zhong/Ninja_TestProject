@@ -12,8 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a36be2e185a32ae479c1e12c4578f146, type: 3}
   m_Name: ThornUp
   m_EditorClassIdentifier: 
-  m_Sprite: {fileID: -8237278655342425170, guid: 2f2c3768bf084b14e9ccf0b867d88c08,
-    type: 3}
+  m_Sprite: {fileID: 21300000, guid: b6b4cebb1d2d418408436ac4cf6c392c, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_Transform:
     e00: 1

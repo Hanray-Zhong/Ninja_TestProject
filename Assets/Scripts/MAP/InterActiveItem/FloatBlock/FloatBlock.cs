@@ -4,28 +4,39 @@ using UnityEngine;
 
 public class FloatBlock : MonoBehaviour
 {
+    [Header("下降，上升速度")]
     public float DownSpeed;
     public float RiseSpeed;
+    [Header("触地判定")]
     public float distance_toGround;
     public Vector2 x_offset;
+    [Header("贴图")]
+    public Sprite sprite_Active;
+    public Sprite sprite_sleep;
+
+
     private Vector3 oringinPos;
     private bool isRising = false;
     private bool onGround = false;
     private bool canInvoke = true;
 
     private Rigidbody2D _rigidbody2D;
+    private SpriteRenderer _sprite;
     private PlayerUnit playerUnit;
 
     private void Start() {
-        oringinPos = transform.parent.position;
-        _rigidbody2D = transform.parent.GetComponent<Rigidbody2D>();
+        GameObject parent = transform.parent.gameObject;
+
+        oringinPos = parent.transform.position;
+        _rigidbody2D = parent.GetComponent<Rigidbody2D>();
+        _sprite = parent.GetComponent<SpriteRenderer>();
         playerUnit = GameObject.FindGameObjectWithTag("Player").GetComponent<PlayerUnit>();
     }
 
     private void Update() {
         if (!playerUnit.IsDead) canInvoke = true;
         if (playerUnit.IsDead && canInvoke) {
-            Invoke("SetOringinPos", 2f);
+            Invoke("SetOringinPos", 1f);
             canInvoke = false;
         }
         IsOnGround();
@@ -33,12 +44,12 @@ public class FloatBlock : MonoBehaviour
             isRising = true;
         }
         if (isRising) {
+            _sprite.sprite = sprite_sleep;
             if (transform.position.y < oringinPos.y) {
                 _rigidbody2D.velocity = new Vector2(0, RiseSpeed);
             }
             else {
-                _rigidbody2D.velocity = Vector2.zero;
-                isRising = false;
+                SetOringinPos();
             }
         }
     }
@@ -47,10 +58,13 @@ public class FloatBlock : MonoBehaviour
                     Physics2D.Raycast(transform.position + (Vector3)x_offset, Vector2.down, distance_toGround, 1 << LayerMask.NameToLayer("Ground")) || 
                     Physics2D.Raycast(transform.position - (Vector3)x_offset, Vector2.down, distance_toGround, 1 << LayerMask.NameToLayer("Ground"));
     }
-    private void OnTriggerEnter2D(Collider2D other) {
+    private void OnTriggerStay2D(Collider2D other) {
         if (other.tag == "Player") {
-            if (!other.GetComponent<PlayerUnit>().IsDead)
+            if (!other.GetComponent<PlayerUnit>().IsDead && !isRising)
+            {
                 _rigidbody2D.velocity = new Vector2(0, -DownSpeed);
+                _sprite.sprite = sprite_Active;
+            }
         }
     }
     private void SetOringinPos() {

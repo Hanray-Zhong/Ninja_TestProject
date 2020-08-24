@@ -12,8 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a36be2e185a32ae479c1e12c4578f146, type: 3}
   m_Name: ThornLeft
   m_EditorClassIdentifier: 
-  m_Sprite: {fileID: -773146072302173796, guid: 2f2c3768bf084b14e9ccf0b867d88c08,
-    type: 3}
+  m_Sprite: {fileID: 21300000, guid: c4c43d08d785b804a8459b84da9a34c9, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_Transform:
     e00: 1
@@ -32,7 +31,7 @@ MonoBehaviour:
     e31: 0
     e32: 0
     e33: 1
-  m_InstancedGameObject: {fileID: 3602520817263073833, guid: b9f1cb2e9adc1f44d84e2385cbdd9eb1,
+  m_InstancedGameObject: {fileID: 3602520817263073833, guid: e1cf5d7adacea8c489918d6078d35b56,
     type: 3}
   m_Flags: 1
   m_ColliderType: 1

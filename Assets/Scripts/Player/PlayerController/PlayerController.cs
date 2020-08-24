@@ -3,22 +3,36 @@ using UnityEngine.UI;
 
 public class PlayerController : MonoBehaviour
 {
+    // 单例模式
+    private static PlayerController _instance;
+    public static PlayerController Instance
+    {
+        get
+        {
+            if (_instance == null)
+            {
+                _instance = GameObject.Find("Player").GetComponent<PlayerController>();
+            }
+            return _instance;
+        }
+    }
+
 
     // 人物未死亡，只是不能控制
     public bool isControlled = true;
 
-    #region Game Input
+    #region 游戏输入
     [Header("Game Input")]
     public GameInput PlayerGameInput;
     public Dropdown dropdown;
     #endregion
 
-    #region Move Properties
+    #region 移动：属性字段
+    [Header("Move")]
     private Vector2 deltaMoveDir;
     private Vector2 lastMoveDir;
     public Vector2 MoveDir { get; set; }
     public bool FaceRight { get; set; } = true;
-    [Header("Move")]
     public float MoveSpeed;
     public float NormalSpeed { get; set; }
     public float OutSideSpeed { get; set; }
@@ -158,7 +172,7 @@ public class PlayerController : MonoBehaviour
         if (!isControlled)
         {
             _rigidbody.velocity = new Vector2(0, _rigidbody.velocity.y);
-            ResetStatus();
+            ResetPlayerControllerStatus();
             return;
         }
         // 处于允许玩家控制阶段
@@ -368,7 +382,8 @@ public class PlayerController : MonoBehaviour
 
     private void IsOnGround()
     {
-        Collider2D[] cols = Physics2D.OverlapBoxAll((Vector2)transform.position + OnGroundColliderCenter, OnGroundColliderSize, 0, 1 << LayerMask.NameToLayer("Ground") | 1 << LayerMask.NameToLayer("OneWayGround"));
+        Collider2D[] cols = Physics2D.OverlapBoxAll((Vector2)transform.position + OnGroundColliderCenter, OnGroundColliderSize, 0, 
+                            1 << LayerMask.NameToLayer("Ground") | 1 << LayerMask.NameToLayer("OneWayGround"));
         if (cols.Length != 0)
         {
             OnGround = true;
@@ -637,8 +652,10 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    // 重置角色状态（不包括属性）
-    public void ResetStatus()
+    /// <summary>
+    /// 重置角色控制器状态
+    /// </summary>
+    public void ResetPlayerControllerStatus()
     {
         delta_HookInteraction = 0;
         delta_ThrowInteraction = 0;
@@ -659,6 +676,15 @@ public class PlayerController : MonoBehaviour
 
         Hang_Time = 0;
         Hook_CD_Time = 150;
+
+        Arrow.SetActive(false);
+        Rope.gameObject.SetActive(false);
+
+        if (NearestHook != null)
+        {
+            NearestHook.GetComponent<HingeJoint2D>().connectedBody = null;
+            NearestHook = null;
+        }
     }
     public void SwitchGameInput()
     {
