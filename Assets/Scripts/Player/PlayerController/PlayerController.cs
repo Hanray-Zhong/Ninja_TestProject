@@ -57,9 +57,9 @@ public class PlayerController : MonoBehaviour
     private bool startJumpBufferTimer = false;
     private float jumpBufferTimer = 0;
 
-    [Header("Is On Ground")]
-    public float distance_toGround;
-    private Vector2 offset_toGroundRay;
+    [Header("OnGround Collider")]
+    public Vector2 OnGroundColliderCenter;
+    public Vector2 OnGroundColliderSize;
     public bool OnGround { get; set; }
     private bool lastOnGround = true;
     private bool just_OnGround = false;
@@ -145,7 +145,6 @@ public class PlayerController : MonoBehaviour
         sprite = gameObject.GetComponent<SpriteRenderer>();
         NormalSpeed = MoveSpeed;
         oriGravity = _rigidbody.gravityScale;
-        offset_toGroundRay.x = gameObject.GetComponent<BoxCollider2D>().bounds.size.x / 2;
     }
     private void Update()
     {
@@ -184,7 +183,6 @@ public class PlayerController : MonoBehaviour
         JumpBufferTimer();
         CoyoteTimer();
         JumpInteraction_CDTimer();
-
         CubeTimer();
     }
 
@@ -370,10 +368,15 @@ public class PlayerController : MonoBehaviour
 
     private void IsOnGround()
     {
-        OnGround = (Physics2D.Raycast(transform.position, Vector2.down, distance_toGround, 1 << LayerMask.NameToLayer("Ground") | 1 << LayerMask.NameToLayer("OneWayGround")) ||
-                    Physics2D.Raycast(transform.position + (Vector3)offset_toGroundRay, Vector2.down, distance_toGround, 1 << LayerMask.NameToLayer("Ground") | 1 << LayerMask.NameToLayer("OneWayGround")) ||
-                    Physics2D.Raycast(transform.position - (Vector3)offset_toGroundRay, Vector2.down, distance_toGround, 1 << LayerMask.NameToLayer("Ground") | 1 << LayerMask.NameToLayer("OneWayGround"))) &&
-                    _rigidbody.velocity.y <= 0.1;
+        Collider2D[] cols = Physics2D.OverlapBoxAll((Vector2)transform.position + OnGroundColliderCenter, OnGroundColliderSize, 0, 1 << LayerMask.NameToLayer("Ground") | 1 << LayerMask.NameToLayer("OneWayGround"));
+        if (cols.Length != 0)
+        {
+            OnGround = true;
+        }
+        else
+        {
+            OnGround = false;
+        }
         just_OnGround = (lastOnGround == true && OnGround == false) ? true : false;
         lastOnGround = OnGround;
     }
@@ -669,8 +672,7 @@ public class PlayerController : MonoBehaviour
     private void OnDrawGizmosSelected()
     {
         Gizmos.color = new Color(1, 0, 0);
-        Gizmos.DrawLine(transform.position, transform.position + new Vector3(0, -distance_toGround, 0));
-        Gizmos.DrawLine(transform.position + (Vector3)offset_toGroundRay, transform.position + new Vector3(0, -distance_toGround, 0));
+        Gizmos.DrawWireCube((Vector2)transform.position + OnGroundColliderCenter, OnGroundColliderSize);
         // Gizmos.DrawWireSphere(transform.position, HookCircleRadius);
     }
 }
