@@ -10,7 +10,6 @@ GameObject:
   m_Component:
   - component: {fileID: 4106542206462014426}
   - component: {fileID: 4106542206462014425}
-  - component: {fileID: 4106542206462014407}
   m_Layer: 0
   m_Name: ChaeckRegion
   m_TagString: Untagged
@@ -58,24 +57,6 @@ BoxCollider2D:
   serializedVersion: 2
   m_Size: {x: 2, y: 5.178196}
   m_EdgeRadius: 0
---- !u!114 &4106542206462014407
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4106542206462014406}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8321c0977ba51c04da955988a89a91d6, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  DownSpeed: 20
-  RiseSpeed: 10
-  distance_toGround: 1.2
-  x_offset: {x: 2, y: 0}
-  sprite_Active: {fileID: 21300000, guid: 761b9fa035bbdc541b9105b76ce750c2, type: 3}
-  sprite_sleep: {fileID: 21300000, guid: 7a00581cbcac5ca4d81210ca8e950ab9, type: 3}
 --- !u!1 &4106542206644866674
 GameObject:
   m_ObjectHideFlags: 0
@@ -158,8 +139,9 @@ GameObject:
   - component: {fileID: 4106542206783206229}
   - component: {fileID: 3956631896117565803}
   - component: {fileID: 8333558533725421588}
+  - component: {fileID: 221425232}
   m_Layer: 0
-  m_Name: FloatBlockPrefab
+  m_Name: FloatBlockPrefab_AutoMove
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -279,6 +261,21 @@ BoxCollider2D:
   serializedVersion: 2
   m_Size: {x: 2.0138044, y: 0.85205317}
   m_EdgeRadius: 0
+--- !u!114 &221425232
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4106542206783206227}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3a3d4156895139c4ab9a823c1939f12a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  Pos_start: {x: 0, y: 0}
+  Pos_end: {x: 0, y: 0}
+  MoveSpeed: 3
 --- !u!1 &4106542206898339801
 GameObject:
   m_ObjectHideFlags: 0

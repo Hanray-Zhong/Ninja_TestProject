@@ -27,6 +27,7 @@ public class Cube : MonoBehaviour {
 
     private void Update() {
         transform.Rotate(Vector3.forward * rotateSpeed * Time.deltaTime, Space.World);
+        CheckGround();
         StartCoroutine(Disappear());
     }
     private void CheckGround() {
@@ -39,14 +40,10 @@ public class Cube : MonoBehaviour {
     }
     private void OnTriggerEnter2D(Collider2D other) {
         if (playerUnit.IsDead) Destroy(gameObject);
-        if (other.tag == "Ground" || other.tag == "BossThorns" || other.tag == "BossRoomGround") {
-            HitGround = true;
-            cube_rigidbody.velocity = Vector2.zero;
-            Destroy(gameObject, 1);
-        }
         if (other.tag == "Enemy" || other.tag == "Boss") {
             HitEnemy = true;
             target = other.gameObject;
+            target.GetComponent<Animator>().SetBool("isGetCube", true);
             Time.timeScale = timeScale;
             Time.fixedDeltaTime = 0.02f * Time.timeScale;
         }
@@ -58,6 +55,11 @@ public class Cube : MonoBehaviour {
         }
     }
     private void OnTriggerExit2D(Collider2D other) {
+        if (other.tag == "Enemy" || other.tag == "Boss")
+        {
+            target = other.gameObject;
+            target.GetComponent<Animator>().SetBool("isGetCube", false);
+        }
         HitEnemy = false;
         HitInteractiveItem = false;
         Time.timeScale = 1;

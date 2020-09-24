@@ -89,7 +89,6 @@ public class PlayerUnit : MonoBehaviour
         if (TransitionBG != null) {
             TransitionBG.Play("TransitionFadeDown");
         }
-        yield return new WaitForSeconds(1);
         // 移动到复活点
         if (ResurrectionPoint != null)
         {

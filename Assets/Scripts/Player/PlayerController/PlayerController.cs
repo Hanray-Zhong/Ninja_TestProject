@@ -114,6 +114,7 @@ public class PlayerController : MonoBehaviour
 
     [Header("Flash")]
     private bool FlashOver = true;
+    public bool isInvincible { get; private set; }
 
     [Header("Link")]
     #region Link Properties
@@ -124,7 +125,7 @@ public class PlayerController : MonoBehaviour
     public bool JustReleaseHook;
     public float HookCircleRadius;
     public float SwingForce;
-    [Range(0, 250)]
+    [Range(0, 99999)]
     public float Hang_Time = 0;
     [Range(0, 150)]
     public float Hook_CD_Time = 150;
@@ -239,9 +240,11 @@ public class PlayerController : MonoBehaviour
                 }
                 
                 // y 直接限制最大速度
-                if (_rigidbody.velocity.y < -y_Max_Velocity)
+                if (_rigidbody.velocity.y <= -y_Max_Velocity)
                 {
+                    _rigidbody.AddForce(new Vector2(0, 9.81f * 5));
                     playerVelocity = new Vector2(playerVelocity.x, -y_Max_Velocity);
+                    
                 }
             }
             _rigidbody.velocity = playerVelocity;
@@ -316,6 +319,7 @@ public class PlayerController : MonoBehaviour
         }
         if (coyoteTimer != 0 && delta_JumpInteraction > 0)
         {
+            Debug.Log("Coyote Time");
             jumpInteraction = true;
         }
         // 触地判断缓冲（当delta_JumpInteraction > 0时，给予缓冲判断是否OnGround）
@@ -325,6 +329,7 @@ public class PlayerController : MonoBehaviour
         }
         if (jumpBufferTimer != 0 && OnGround)
         {
+            // Debug.Log("Jump Buffer");
             jumpInteraction = true;
         }
         // 执行跳跃动作
@@ -382,8 +387,15 @@ public class PlayerController : MonoBehaviour
 
     private void IsOnGround()
     {
-        Collider2D[] cols = Physics2D.OverlapBoxAll((Vector2)transform.position + OnGroundColliderCenter, OnGroundColliderSize, 0, 
-                            1 << LayerMask.NameToLayer("Ground") | 1 << LayerMask.NameToLayer("OneWayGround"));
+        // Debug.Log("IsOnGround()");
+        if (_rigidbody.velocity.y > 0.1f)
+        {
+            OnGround = false;
+            lastOnGround = false;
+            return;
+        }
+        Collider2D[] cols = Physics2D.OverlapBoxAll((Vector2)transform.position + OnGroundColliderCenter,
+            OnGroundColliderSize, -_transform.rotation.z, 1 << LayerMask.NameToLayer("Ground") | 1 << LayerMask.NameToLayer("OneWayGround"));
         if (cols.Length != 0)
         {
             OnGround = true;
@@ -393,6 +405,7 @@ public class PlayerController : MonoBehaviour
             OnGround = false;
         }
         just_OnGround = (lastOnGround == true && OnGround == false) ? true : false;
+        // Debug.Log("LastOnGround:" + lastOnGround + "     OnGround:" + OnGround);
         lastOnGround = OnGround;
     }
     private void JumpAction()
@@ -403,7 +416,7 @@ public class PlayerController : MonoBehaviour
     private void CarryNPC()
     {
         if (carriedNPC == null) return;
-        if (PlayerGameInput.GetThrowInteraction() > 0 && canCarryNPC && !allowThrowCube)
+        if (PlayerGameInput.GetThrowInteraction() > 0.9f && canCarryNPC && !allowThrowCube)
         {
             carriedNPC.GetComponent<Rigidbody2D>().gravityScale = 0;
             carriedNPC.transform.position = _transform.position + new Vector3((FaceRight ? (-offset_NpcToPlayer) : offset_NpcToPlayer), 0, 0);
@@ -503,6 +516,9 @@ public class PlayerController : MonoBehaviour
                     gameObject.transform.position = currentCube.gameObject.transform.position;
                     CubeCDTimer = 140;
                     JumpAction();
+                    // 进入无敌帧
+                    isInvincible = true;
+                    Invoke("CancelInvincible", 0.04f);
                     Destroy(currentCube.gameObject);
                 }
                 // 击中敌人，自动跳起
@@ -520,6 +536,7 @@ public class PlayerController : MonoBehaviour
                     currentCube.InteractiveItem.GetComponent<InterActiveItem>().InterAction();
                     gameObject.transform.position = currentCube.gameObject.transform.position;
                     CubeCDTimer = 140;
+                    JumpAction();
                     Destroy(currentCube.gameObject);
                 }
                 if (FlashEffect != null)
@@ -534,6 +551,13 @@ public class PlayerController : MonoBehaviour
         if (delta_ThrowInteraction < 0)
             FlashOver = true;
         return false;
+    }
+    /// <summary>
+    /// 取消无敌帧
+    /// </summary>
+    private void CancelInvincible()
+    {
+        isInvincible = false;
     }
     private void SetTrailRendererFalse()
     {
@@ -595,11 +619,11 @@ public class PlayerController : MonoBehaviour
         {
             Hang_Time++;
             // // 上下攀爬
-            Vector2 player_hook_dir = NearestHook.transform.position - transform.position;
-            if (MoveDir.y > 0 && transform.position.y < NearestHook.transform.position.y && player_hook_dir.magnitude > Min_RopeLength)
-                transform.Translate(player_hook_dir * ClimbSpeed * Time.deltaTime);
-            if (MoveDir.y < 0 && transform.position.y < NearestHook.transform.position.y && player_hook_dir.magnitude < Max_RopeLength)
-                transform.Translate(-player_hook_dir * ClimbSpeed * Time.deltaTime);
+            Vector2 player_hook_dir = (NearestHook.transform.position - transform.position);
+            if (Input.GetKey(KeyCode.W) && transform.position.y < NearestHook.transform.position.y && player_hook_dir.magnitude > Min_RopeLength)
+                transform.Translate(player_hook_dir.normalized * ClimbSpeed * Time.deltaTime);
+            if (Input.GetKey(KeyCode.S) && transform.position.y < NearestHook.transform.position.y && player_hook_dir.magnitude < Max_RopeLength)
+                transform.Translate(-player_hook_dir.normalized * ClimbSpeed * Time.deltaTime);
             // // 左右晃动
             if (transform.position.y < NearestHook.transform.position.y)
             {
@@ -617,7 +641,7 @@ public class PlayerController : MonoBehaviour
                 NearestHook = null;
                 JustReleaseHook = true;
             }
-            if (Hang_Time >= 250)
+            if (Hang_Time >= 99999)
             {
                 onHook = false;
                 NearestHook.GetComponent<HingeJoint2D>().connectedBody = null;
@@ -699,6 +723,7 @@ public class PlayerController : MonoBehaviour
     {
         Gizmos.color = new Color(1, 0, 0);
         Gizmos.DrawWireCube((Vector2)transform.position + OnGroundColliderCenter, OnGroundColliderSize);
-        // Gizmos.DrawWireSphere(transform.position, HookCircleRadius);
+        
+        Gizmos.DrawWireSphere(transform.position, HookCircleRadius);
     }
 }

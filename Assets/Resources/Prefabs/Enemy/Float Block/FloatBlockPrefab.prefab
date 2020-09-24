@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 4106542206462014426}
   - component: {fileID: 4106542206462014425}
   - component: {fileID: 4106542206462014407}
-  m_Layer: 0
+  m_Layer: 14
   m_Name: ChaeckRegion
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -45,7 +45,7 @@ BoxCollider2D:
   m_IsTrigger: 1
   m_UsedByEffector: 0
   m_UsedByComposite: 0
-  m_Offset: {x: 0, y: -2.030902}
+  m_Offset: {x: 0.009552002, y: -4.4147735}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0, y: 0}
@@ -56,7 +56,7 @@ BoxCollider2D:
     adaptiveTiling: 0
   m_AutoTiling: 0
   serializedVersion: 2
-  m_Size: {x: 2, y: 5.178196}
+  m_Size: {x: 2.428955, y: 9.890454}
   m_EdgeRadius: 0
 --- !u!114 &4106542206462014407
 MonoBehaviour:
@@ -87,7 +87,7 @@ GameObject:
   - component: {fileID: 4106542206644866675}
   - component: {fileID: 4106542206644866677}
   - component: {fileID: 4106542206644866676}
-  m_Layer: 0
+  m_Layer: 14
   m_Name: Thorn
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -144,7 +144,7 @@ BoxCollider2D:
     adaptiveTiling: 0
   m_AutoTiling: 0
   serializedVersion: 2
-  m_Size: {x: 1.7850287, y: 0.42825127}
+  m_Size: {x: 2.0007522, y: 0.42825127}
   m_EdgeRadius: 0
 --- !u!1 &4106542206783206227
 GameObject:
@@ -158,7 +158,7 @@ GameObject:
   - component: {fileID: 4106542206783206229}
   - component: {fileID: 3956631896117565803}
   - component: {fileID: 8333558533725421588}
-  m_Layer: 0
+  m_Layer: 14
   m_Name: FloatBlockPrefab
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -290,7 +290,7 @@ GameObject:
   - component: {fileID: 4106542206898339802}
   - component: {fileID: 4106542206898339804}
   - component: {fileID: 5117666984867890959}
-  m_Layer: 0
+  m_Layer: 14
   m_Name: Trampoline
   m_TagString: Untagged
   m_Icon: {fileID: 0}
