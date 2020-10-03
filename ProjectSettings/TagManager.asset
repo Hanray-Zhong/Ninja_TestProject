@@ -32,8 +32,8 @@ TagManager:
   - Player
   - NPC
   - OneWayGround
-  - 
-  - 
+  - FloatBlock
+  - Electric
   - 
   - 
   - 

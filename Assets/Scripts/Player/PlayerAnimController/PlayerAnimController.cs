@@ -18,7 +18,6 @@ public class PlayerAnimController : MonoBehaviour
         playerRigidbody = gameObject.GetComponent<Rigidbody2D>();
     }
     private void Update() {
-
         animatorStateInfo = PlayerAnimator.GetCurrentAnimatorStateInfo(0);
 
         this.CheckFaceDir();
@@ -32,7 +31,7 @@ public class PlayerAnimController : MonoBehaviour
         else spriteRenderer.flipX = false;
     }
     private void PlayMoveAnim() {
-        if (Input.GetKey(KeyCode.D) || Input.GetKey(KeyCode.A)) {
+        if (playerController.isControlled && (Input.GetKey(KeyCode.D) || Input.GetKey(KeyCode.A))) {
             PlayerAnimator.SetBool("IsMoving", true);
         }
         else {

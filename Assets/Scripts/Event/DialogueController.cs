@@ -8,8 +8,6 @@ public class DialogueController : MonoBehaviour
 {
     [Header("Events")]
     private UnityEvent endEvent;
-    [Header("PlayerController")]
-    public PlayerController playerController;
     [Header("Game Input")]
     public GameInput PlayerGameInput;
     private float delta_JumpInteraction;
@@ -57,7 +55,7 @@ public class DialogueController : MonoBehaviour
         SetPlayerActive();
     }
     private void SetPlayerActive() {
-        playerController.ResetStatus();
-        playerController.isControlled = true;
+        PlayerController.Instance.ResetPlayerControllerStatus();
+        PlayerController.Instance.isControlled = true;
     }
 }

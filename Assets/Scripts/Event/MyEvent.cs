@@ -44,13 +44,21 @@ public class MyEvent : MonoBehaviour
         }
         NPCs[index].isMeetCondition = true;
     }
-    public void DialogueEvent(GameObject dialogue, UnityEvent EndEvent) {
+    public void DialogueEvent(GameObject dialogue, UnityEvent EndEvent) 
+    {
         if (dialogueController.gameObject.activeSelf == true) return;
         playerController.isControlled = false;
         dialogueController.gameObject.SetActive(true);
         dialogueController.SetTextsActive(dialogue, EndEvent);
     }
-    public void NpcCanBeCarried(int index) {
+    public void NpcCanBeCarried(int index) 
+    {
         NPCs[index].gameObject.GetComponent<NPCUnit>().canBeCarried = true;
+    }
+    public void NpcDisappear(int index)
+    {
+        playerController.allowThrowCube = true;
+        playerController.carriedNPC = null;
+        NPCs[index].gameObject.SetActive(false);
     }
 }
