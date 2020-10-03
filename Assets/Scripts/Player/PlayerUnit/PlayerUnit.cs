@@ -67,6 +67,8 @@ public class PlayerUnit : MonoBehaviour
             // 设置死亡时的物理状态
             _rigidbody.constraints = RigidbodyConstraints2D.FreezePosition;
             _rigidbody.velocity = Vector2.zero;
+            // 关闭音效
+            PlayerSoundController.Instance.StopAll();
             // 重置 timeScale
             Time.timeScale = 1;
             Time.fixedDeltaTime = 0.02f * Time.timeScale;

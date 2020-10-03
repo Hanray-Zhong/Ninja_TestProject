@@ -27,6 +27,17 @@ public class PlayerController : MonoBehaviour
     public Dropdown dropdown;
     #endregion
 
+    #region 控制器
+    private PlayerSoundController playerSoundController;
+    #endregion
+
+    #region 组件
+    private Rigidbody2D _rigidbody;
+    private Transform _transform;
+    private PlayerUnit _unit;
+    private SpriteRenderer sprite;
+    #endregion
+
     #region 移动：属性字段
     [Header("Move")]
     private Vector2 deltaMoveDir;
@@ -55,7 +66,6 @@ public class PlayerController : MonoBehaviour
     [Header("Jump")]
     public float JumpSpeed;
     public AnimationCurve GravityCurve;
-    private float oriGravity;
     private float delta_JumpInteraction;
     private float lastJumpInteraction = 0;
     public bool AllowJump { get; set; } = false;
@@ -71,9 +81,13 @@ public class PlayerController : MonoBehaviour
     private bool startJumpBufferTimer = false;
     private float jumpBufferTimer = 0;
 
-    [Header("OnGround Collider")]
-    public Vector2 OnGroundColliderCenter;
-    public Vector2 OnGroundColliderSize;
+    [Header("Gravity")]
+    public float GravityScale;
+    private float originGravityScale;
+
+    [Header("OnGround Overlap")]
+    public Vector2 OnGroundOverlapCenter;
+    public Vector2 OnGroundOverlapSize;
     public bool OnGround { get; set; }
     private bool lastOnGround = true;
     private bool just_OnGround = false;
@@ -90,10 +104,11 @@ public class PlayerController : MonoBehaviour
     public float CubeCDTimer = 0;
     [Range(0, 150)]
     public float Bullet_Timer = 0;
-    [HideInInspector]
-    public bool onBulletTime = false;
+    public ParticleSystem RefreshEffect;
     public GameObject FlashEffect;
     public TrailRenderer trailRenderer;
+    [HideInInspector]
+    public bool onBulletTime = false;
     #endregion
 
     [Header("Carry NPC")]
@@ -109,7 +124,7 @@ public class PlayerController : MonoBehaviour
     private Cube currentCube;
     private float lastThrowInteraction = 0;
     private float delta_ThrowInteraction;
-    private SpriteRenderer sprite;
+    
     #endregion
 
     [Header("Flash")]
@@ -147,9 +162,7 @@ public class PlayerController : MonoBehaviour
     #endregion
 
     #region Component
-    private Rigidbody2D _rigidbody;
-    private Transform _transform;
-    private PlayerUnit _unit;
+    
     #endregion
 
     private void Awake()
@@ -158,8 +171,9 @@ public class PlayerController : MonoBehaviour
         _transform = gameObject.GetComponent<Transform>();
         _unit = gameObject.GetComponent<PlayerUnit>();
         sprite = gameObject.GetComponent<SpriteRenderer>();
+        playerSoundController = PlayerSoundController.Instance;
         NormalSpeed = MoveSpeed;
-        oriGravity = _rigidbody.gravityScale;
+        originGravityScale = GravityScale;
     }
     private void Update()
     {
@@ -194,6 +208,8 @@ public class PlayerController : MonoBehaviour
     }
     private void FixedUpdate()
     {
+        GravityController();
+        // Timer
         MoveTimer();
         JumpBufferTimer();
         CoyoteTimer();
@@ -209,6 +225,16 @@ public class PlayerController : MonoBehaviour
         if (MoveDir.x < 0)
             FaceRight = false;
         // Debug.Log(MoveDir);
+
+        // 音效
+        if (MoveDir.magnitude > 0.01f && OnGround && !playerSoundController.IsPlaying(PlayerSoundType.run))
+        {
+            playerSoundController.Play(PlayerSoundType.run);
+        }
+        else if (MoveDir.magnitude < 1 || !OnGround)
+        {
+            playerSoundController.StopPlay(PlayerSoundType.run);
+        }
     }
     private void Move()
     {
@@ -217,7 +243,6 @@ public class PlayerController : MonoBehaviour
         if (!onHook && Bullet_Timer == 0)
         {
             _rigidbody.freezeRotation = true;
-            _rigidbody.gravityScale = oriGravity;
             _transform.rotation = Quaternion.identity;
             // 预测速度
             playerVelocity = new Vector2(SpeedCurve.Evaluate(moveTimer) * MoveSpeed, _rigidbody.velocity.y);
@@ -237,14 +262,6 @@ public class PlayerController : MonoBehaviour
                 if (JustReleaseHook && _rigidbody.velocity.x != 0)
                 {
                     playerVelocity = _rigidbody.velocity + new Vector2(((_rigidbody.velocity.x > 0) ? -x_decreaseRateWithoutControl : x_decreaseRateWithoutControl) * Time.deltaTime, 0);
-                }
-                
-                // y 直接限制最大速度
-                if (_rigidbody.velocity.y <= -y_Max_Velocity)
-                {
-                    _rigidbody.AddForce(new Vector2(0, 9.81f * 5));
-                    playerVelocity = new Vector2(playerVelocity.x, -y_Max_Velocity);
-                    
                 }
             }
             _rigidbody.velocity = playerVelocity;
@@ -303,14 +320,6 @@ public class PlayerController : MonoBehaviour
     public bool Jump()
     {
         delta_JumpInteraction = PlayerGameInput.GetJumpInteraction() - lastJumpInteraction;
-        if (OnGround)
-        {
-            _rigidbody.gravityScale = oriGravity;
-        }
-        else
-        {
-            _rigidbody.gravityScale = GravityCurve.Evaluate(Mathf.Abs(_rigidbody.velocity.y) / JumpSpeed) * oriGravity;
-        }
         // 跳跃控制
         // 土狼时间（当OnGround为false时，给予缓冲）
         if (just_OnGround)
@@ -319,7 +328,7 @@ public class PlayerController : MonoBehaviour
         }
         if (coyoteTimer != 0 && delta_JumpInteraction > 0)
         {
-            Debug.Log("Coyote Time");
+            // Debug.Log("Coyote Time");
             jumpInteraction = true;
         }
         // 触地判断缓冲（当delta_JumpInteraction > 0时，给予缓冲判断是否OnGround）
@@ -385,6 +394,32 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+    private void GravityController()
+    {
+        if (OnGround)
+        {
+            GravityScale = originGravityScale;
+        }
+        else if (!onHook)
+        {
+            GravityScale = GravityCurve.Evaluate(Mathf.Abs(_rigidbody.velocity.y) / JumpSpeed) * originGravityScale;
+        }
+        else if (onHook)
+        {
+            GravityScale = originGravityScale / 2;
+        }
+
+        // y 直接限制最大速度
+        if (_rigidbody.velocity.y <= -y_Max_Velocity)
+        {
+            GravityScale = 0;
+            // playerVelocity = new Vector2(playerVelocity.x, -y_Max_Velocity);
+        }
+
+        // Debug.Log("Gravity Controller");
+        _rigidbody.AddForce(Vector2.down * GravityScale * 9.81f, ForceMode2D.Force);
+    }
+
     private void IsOnGround()
     {
         // Debug.Log("IsOnGround()");
@@ -394,8 +429,8 @@ public class PlayerController : MonoBehaviour
             lastOnGround = false;
             return;
         }
-        Collider2D[] cols = Physics2D.OverlapBoxAll((Vector2)transform.position + OnGroundColliderCenter,
-            OnGroundColliderSize, -_transform.rotation.z, 1 << LayerMask.NameToLayer("Ground") | 1 << LayerMask.NameToLayer("OneWayGround"));
+        Collider2D[] cols = Physics2D.OverlapBoxAll((Vector2)transform.position + OnGroundOverlapCenter,
+            OnGroundOverlapSize, -_transform.rotation.z, 1 << LayerMask.NameToLayer("Ground") | 1 << LayerMask.NameToLayer("OneWayGround"));
         if (cols.Length != 0)
         {
             OnGround = true;
@@ -406,10 +441,19 @@ public class PlayerController : MonoBehaviour
         }
         just_OnGround = (lastOnGround == true && OnGround == false) ? true : false;
         // Debug.Log("LastOnGround:" + lastOnGround + "     OnGround:" + OnGround);
+        // 音效
+        if (!lastOnGround && OnGround)
+        {
+            playerSoundController.Play(PlayerSoundType.falldown);
+        }
+        
         lastOnGround = OnGround;
     }
     private void JumpAction()
     {
+        // 音效
+        playerSoundController.Play(PlayerSoundType.jump);
+        
         _rigidbody.velocity = new Vector2(_rigidbody.velocity.x, 0);
         _rigidbody.velocity += new Vector2(0, JumpSpeed);
     }
@@ -432,8 +476,16 @@ public class PlayerController : MonoBehaviour
         Vector2 ArrowDir = PlayerGameInput.GetArrowDir();
         if (PlayerGameInput.GetThrowInteraction() > 0.9f && canThrowCube)
         {
+            // 音效
+            if (Time.timeScale == 1)
+            {
+                playerSoundController.Play(PlayerSoundType.stoptime);
+            }
+
             Time.timeScale = 0.1f;
             Time.fixedDeltaTime = 0.02f * Time.timeScale;
+
+
             onBulletTime = true;
             Bullet_Timer++;
             Arrow.SetActive(true);
@@ -457,6 +509,9 @@ public class PlayerController : MonoBehaviour
                     cube_rigidbody.AddForce(Vector2.right * ThrowForce, ForceMode2D.Impulse);
                 else
                     cube_rigidbody.AddForce(Vector2.left * ThrowForce, ForceMode2D.Impulse);
+
+                // 音效
+                playerSoundController.Play(PlayerSoundType.throwcube);
             }
             CubeCDTimer = 0;
             canThrowCube = false;
@@ -464,6 +519,10 @@ public class PlayerController : MonoBehaviour
             Arrow.SetActive(false);
             Time.timeScale = 1;
             Time.fixedDeltaTime = 0.02f * Time.timeScale;
+
+            // 音效
+            playerSoundController.StopPlay(PlayerSoundType.stoptime);
+
             onBulletTime = false;
         }
         lastThrowInteraction = PlayerGameInput.GetThrowInteraction();
@@ -473,7 +532,14 @@ public class PlayerController : MonoBehaviour
         if (CubeCDTimer < 150)
             CubeCDTimer++;
         if (CubeCDTimer == 150 && FlashOver)
+        {
             canThrowCube = true;
+        }
+        else if (CubeCDTimer == 140)
+        {
+            playerSoundController.Play(PlayerSoundType.hit);
+            RefreshEffect.Play();
+        }
         else
             canThrowCube = false;
     }
@@ -513,9 +579,17 @@ public class PlayerController : MonoBehaviour
                 // 击中墙壁，自动跳起
                 if (currentCube.HitGround)
                 {
-                    gameObject.transform.position = currentCube.gameObject.transform.position;
+                    gameObject.transform.position = currentCube.HitGroundFlashPos;
                     CubeCDTimer = 140;
+                    
+                    // 先让unity进行碰撞判定，然后再进行跳跃
+                    // Invoke("JumpAction", 0.1f);
                     JumpAction();
+
+                    // 音效以及特效
+                    playerSoundController.Play(PlayerSoundType.hit);
+                    RefreshEffect.Play();
+
                     // 进入无敌帧
                     isInvincible = true;
                     Invoke("CancelInvincible", 0.04f);
@@ -528,6 +602,11 @@ public class PlayerController : MonoBehaviour
                     gameObject.transform.position = currentCube.gameObject.transform.position;
                     CubeCDTimer = 140;
                     JumpAction();
+
+                    // 音效以及特效
+                    playerSoundController.Play(PlayerSoundType.hit);
+                    RefreshEffect.Play();
+
                     Destroy(currentCube.gameObject);
                 }
                 // 击中可交互物体
@@ -537,6 +616,11 @@ public class PlayerController : MonoBehaviour
                     gameObject.transform.position = currentCube.gameObject.transform.position;
                     CubeCDTimer = 140;
                     JumpAction();
+
+                    // 音效以及特效
+                    playerSoundController.Play(PlayerSoundType.hit);
+                    RefreshEffect.Play();
+
                     Destroy(currentCube.gameObject);
                 }
                 if (FlashEffect != null)
@@ -544,6 +628,10 @@ public class PlayerController : MonoBehaviour
                     Invoke("SetTrailRendererFalse", 0.1f);
                     Instantiate(FlashEffect, transform.position, Quaternion.identity);
                 }
+
+                // 音效
+                playerSoundController.Play(PlayerSoundType.flash);
+
                 SecJump = false;
                 return true;
             }
@@ -559,6 +647,7 @@ public class PlayerController : MonoBehaviour
     {
         isInvincible = false;
     }
+    
     private void SetTrailRendererFalse()
     {
         trailRenderer.emitting = false;
@@ -666,7 +755,6 @@ public class PlayerController : MonoBehaviour
         if (onHook)
         {
             _rigidbody.freezeRotation = false;
-            _rigidbody.gravityScale = oriGravity / 2;
             if (justHook)
             {
                 _rigidbody.velocity = velocity_beforeHook;
@@ -722,7 +810,7 @@ public class PlayerController : MonoBehaviour
     private void OnDrawGizmosSelected()
     {
         Gizmos.color = new Color(1, 0, 0);
-        Gizmos.DrawWireCube((Vector2)transform.position + OnGroundColliderCenter, OnGroundColliderSize);
+        Gizmos.DrawWireCube((Vector2)transform.position + OnGroundOverlapCenter, OnGroundOverlapSize);
         
         Gizmos.DrawWireSphere(transform.position, HookCircleRadius);
     }

@@ -32,10 +32,14 @@ namespace KanetoTools
 
 
 	    IEnumerator Load(int SceneIndex, float delay) {
-            BGMController.Instance.SceneTransition = true;
+            if (BGMController.Instance != null)
+                BGMController.Instance.SceneTransition = true;
+            if (PlayerSoundController.Instance != null)
+                PlayerSoundController.Instance.StopAll();
 		    yield return new WaitForSeconds(delay);
 		    SceneManager.LoadScene(SceneIndex);
-            BGMController.Instance.IsChangeScene = true;
+            if (BGMController.Instance != null)
+                BGMController.Instance.IsChangeScene = true;
         }
 
 

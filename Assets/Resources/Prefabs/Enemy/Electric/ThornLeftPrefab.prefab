@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 3602520817263073839}
   - component: {fileID: 3602520817263073838}
   - component: {fileID: 5482912474959085664}
-  m_Layer: 0
+  m_Layer: 15
   m_Name: ThornLeftPrefab
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -49,6 +49,7 @@ SpriteRenderer:
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 0
+  m_RayTraceProcedural: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:

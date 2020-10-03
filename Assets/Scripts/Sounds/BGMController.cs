@@ -12,7 +12,9 @@ public class BGMController : MonoBehaviour
         {
             if (_instance == null)
             {
-                _instance = GameObject.Find("BGMController").GetComponent<BGMController>();
+                GameObject BGMController = GameObject.Find("BGMController");
+                if (BGMController != null)
+                    _instance = BGMController.GetComponent<BGMController>();
             }
             return _instance;
         }
