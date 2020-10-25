@@ -36,29 +36,34 @@ public class PlayerUnit : MonoBehaviour
     private PlayerController _controller;
     private Animator _animator;
 
-    public bool IsDead {
-        get {return this.isDead;}
-        set {this.isDead = value;}
+    public bool IsDead
+    {
+        get { return this.isDead; }
+        set { this.isDead = value; }
     }
 
-    private void Awake() {
+    private void Awake()
+    {
         _sprite = GetComponent<SpriteRenderer>();
-        
+
         _transform = transform;
         _rigidbody = GetComponent<Rigidbody2D>();
         _controller = GetComponent<PlayerController>();
         _animator = GetComponent<Animator>();
     }
 
-    private void Update() {
+    private void Update()
+    {
         CheckDeathStatus();
     }
 
     /// <summary>
     /// 检查是否进入死亡状态
     /// </summary>
-    private void CheckDeathStatus() {
-        if (isDead && canCoroutine) {
+    private void CheckDeathStatus()
+    {
+        if (isDead && canCoroutine)
+        {
             // 透明
             _sprite.color = new Color(1, 1, 1, 0);
             // PlayerController 重置
@@ -78,17 +83,21 @@ public class PlayerUnit : MonoBehaviour
         }
     }
 
-    private IEnumerator Resurrection() {
-        if (DeadEffect != null) {
+    private IEnumerator Resurrection()
+    {
+        if (DeadEffect != null)
+        {
             Instantiate(DeadEffect, _transform.position, Quaternion.identity);
         }
         // Crountine
         yield return new WaitForSeconds(0.3f);
-        if (TransitionBG != null) {
+        if (TransitionBG != null)
+        {
             TransitionBG.Play("TransitionFadeUp");
         }
         yield return new WaitForSeconds(1);
-        if (TransitionBG != null) {
+        if (TransitionBG != null)
+        {
             TransitionBG.Play("TransitionFadeDown");
         }
         // 移动到复活点
@@ -103,16 +112,18 @@ public class PlayerUnit : MonoBehaviour
         _transform.up = Vector2.up;
         _sprite.color = new Color(1, 1, 1, 1);
         // 播放复活动画
-        
+
         // 消除死亡状态
         yield return new WaitForSeconds(0);
         isDead = false;
         canCoroutine = true;
     }
-    private void OnTriggerStay2D(Collider2D other) {
+    private void OnTriggerStay2D(Collider2D other)
+    {
         if (other.tag == "SafeRegion") IsOnSafeRegion = true;
     }
-    private void OnTriggerExit2D(Collider2D other) {
+    private void OnTriggerExit2D(Collider2D other)
+    {
         if (other.tag == "SafeRegion") IsOnSafeRegion = false;
     }
 }

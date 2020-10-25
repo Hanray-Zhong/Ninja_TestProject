@@ -1,10 +1,10 @@
 using UnityEngine;
 using System.Collections;
 
-public class Cube : MonoBehaviour {
+public class Cube : MonoBehaviour
+{
     public float ActiveTime;
     public float rotateSpeed;
-    public GameObject Player;
 
     [Header("Hit")]
     public bool HitGround = false;
@@ -21,32 +21,35 @@ public class Cube : MonoBehaviour {
     public float CheckGroundRadius;
     public float CheckOverlapWidth;
     public float CheckOverlapHeight;
-    
+
 
     private PlayerUnit playerUnit;
     private Rigidbody2D cube_rigidbody;
     private Transform cube_transform;
 
-    private void Awake() {
-        Player = GameObject.FindGameObjectWithTag("Player");
-        playerUnit = Player.GetComponent<PlayerUnit>();
+    private void Awake()
+    {
+        playerUnit = PlayerUnit.Instance;
         cube_rigidbody = gameObject.GetComponent<Rigidbody2D>();
         cube_transform = gameObject.GetComponent<Transform>();
     }
 
-    private void Update() {
+    private void Update()
+    {
         transform.Rotate(Vector3.forward * rotateSpeed * Time.deltaTime, Space.World);
         CheckGround();
         StartCoroutine(Disappear());
     }
-    
-    private void CheckGround() {
+
+    private void CheckGround()
+    {
         Collider2D groundCol_up = Physics2D.OverlapBox((Vector2)cube_transform.position + new Vector2(0, CheckGroundRadius), new Vector2(CheckOverlapWidth, CheckOverlapHeight), 0, 1 << LayerMask.NameToLayer("Ground"));
         Collider2D groundCol_down = Physics2D.OverlapBox((Vector2)cube_transform.position + new Vector2(0, -CheckGroundRadius), new Vector2(CheckOverlapWidth, CheckOverlapHeight), 0, 1 << LayerMask.NameToLayer("Ground"));
         Collider2D groundCol_left = Physics2D.OverlapBox((Vector2)cube_transform.position + new Vector2(-CheckGroundRadius, 0), new Vector2(CheckOverlapHeight, CheckOverlapWidth), 0, 1 << LayerMask.NameToLayer("Ground"));
         Collider2D groundCol_right = Physics2D.OverlapBox((Vector2)cube_transform.position + new Vector2(CheckGroundRadius, 0), new Vector2(CheckOverlapHeight, CheckOverlapWidth), 0, 1 << LayerMask.NameToLayer("Ground"));
         Vector4 isHitGround = new Vector4((groundCol_up == null) ? 0 : 1, (groundCol_down == null) ? 0 : 1, (groundCol_left == null) ? 0 : 1, (groundCol_right == null) ? 0 : 1);
-        if (isHitGround != Vector4.zero) {
+        if (isHitGround != Vector4.zero)
+        {
             // Debug.Log(groundCol_up.name);
             HitGround = true;
             HitGroundFlashPos = transform.position + new Vector3(HitGroundFlashPosOffset, 0) * isHitGround.z + new Vector3(-HitGroundFlashPosOffset, 0) * isHitGround.w;
@@ -54,9 +57,17 @@ public class Cube : MonoBehaviour {
             Destroy(gameObject, 1);
         }
     }
-    private void OnTriggerEnter2D(Collider2D other) {
-        if (playerUnit.IsDead) Destroy(gameObject);
-        if (other.tag == "Enemy" || other.tag == "Boss") {
+    private void OnTriggerEnter2D(Collider2D other)
+    {
+        if (playerUnit.IsDead)
+        {
+            Time.timeScale = 1;
+            Time.fixedDeltaTime = 0.02f * Time.timeScale;
+            Destroy(gameObject);
+            return;
+        }
+        if (other.tag == "Enemy" || other.tag == "Boss")
+        {
             HitEnemy = true;
             target = other.gameObject;
             target.GetComponent<Animator>().SetBool("isGetCube", true);
@@ -64,7 +75,8 @@ public class Cube : MonoBehaviour {
             Time.timeScale = timeScale;
             Time.fixedDeltaTime = 0.02f * Time.timeScale;
         }
-        if (other.tag == "InterActiveItem") {
+        if (other.tag == "InterActiveItem")
+        {
             HitInteractiveItem = true;
             InteractiveItem = other.gameObject;
             PlayerSoundController.Instance.Play(PlayerSoundType.stoptime);
@@ -72,7 +84,8 @@ public class Cube : MonoBehaviour {
             Time.fixedDeltaTime = 0.02f * Time.timeScale;
         }
     }
-    private void OnTriggerExit2D(Collider2D other) {
+    private void OnTriggerExit2D(Collider2D other)
+    {
         if (other.tag == "Enemy" || other.tag == "Boss")
         {
             target = other.gameObject;
@@ -85,13 +98,15 @@ public class Cube : MonoBehaviour {
         Time.fixedDeltaTime = 0.02f * Time.timeScale;
     }
 
-    private IEnumerator Disappear() {
+    private IEnumerator Disappear()
+    {
         yield return new WaitForSeconds(ActiveTime);
         cube_rigidbody.velocity = Vector2.zero;
         Destroy(gameObject, 1);
     }
 
-    private void OnDrawGizmosSelected() {
+    private void OnDrawGizmosSelected()
+    {
         Gizmos.color = new Color(1, 0, 0);
         Gizmos.DrawWireSphere(transform.position, HitGroundFlashPosOffset);
         // up

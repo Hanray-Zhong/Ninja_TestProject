@@ -105,8 +105,7 @@ public class PlayerController : MonoBehaviour
     [Range(0, 150)]
     public float Bullet_Timer = 0;
     public ParticleSystem RefreshEffect;
-    public GameObject FlashEffect;
-    public TrailRenderer trailRenderer;
+
     [HideInInspector]
     public bool onBulletTime = false;
     #endregion
@@ -153,8 +152,8 @@ public class PlayerController : MonoBehaviour
     [Header("Hook")]
     #region Hook
     private float nearestDistance;
-    public GameObject NearestHook { get; set; }
-    private GameObject currentHook;
+    public GameObject nearestHook { get; set; }
+    public GameObject currentHook { get; set; }
     private Vector2 velocity_beforeHook;
     private bool justHook = false;
     private float lastHookInteraction = 0;
@@ -188,6 +187,7 @@ public class PlayerController : MonoBehaviour
         {
             _rigidbody.velocity = new Vector2(0, _rigidbody.velocity.y);
             ResetPlayerControllerStatus();
+            playerSoundController.StopAll();
             return;
         }
         // 处于允许玩家控制阶段
@@ -208,7 +208,8 @@ public class PlayerController : MonoBehaviour
     }
     private void FixedUpdate()
     {
-        GravityController();
+        // 调用重力模拟
+        // GravityController();
         // Timer
         MoveTimer();
         JumpBufferTimer();
@@ -320,6 +321,25 @@ public class PlayerController : MonoBehaviour
     public bool Jump()
     {
         delta_JumpInteraction = PlayerGameInput.GetJumpInteraction() - lastJumpInteraction;
+
+        // 使用 unity 重力
+        if (OnGround)
+        {
+            _rigidbody.gravityScale = originGravityScale;
+        }
+        else
+        {
+            if (_rigidbody.velocity.y <= -y_Max_Velocity)
+            {
+                _rigidbody.gravityScale = 0;
+            }
+            else
+            {
+                if (!onHook)
+                    _rigidbody.gravityScale = GravityCurve.Evaluate(Mathf.Abs(_rigidbody.velocity.y) / JumpSpeed) * originGravityScale;
+            }
+        }
+
         // 跳跃控制
         // 土狼时间（当OnGround为false时，给予缓冲）
         if (just_OnGround)
@@ -394,6 +414,9 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// 重力模拟
+    /// </summary>
     private void GravityController()
     {
         if (OnGround)
@@ -434,6 +457,7 @@ public class PlayerController : MonoBehaviour
         if (cols.Length != 0)
         {
             OnGround = true;
+            
         }
         else
         {
@@ -499,7 +523,6 @@ public class PlayerController : MonoBehaviour
         if ((delta_ThrowInteraction < 0 || Bullet_Timer >= 150) && canThrowCube)
         {
             currentCube = Instantiate(CubePrefab, ThrowPos.position, Quaternion.identity).GetComponent<Cube>();
-            currentCube.Player = gameObject;
             Rigidbody2D cube_rigidbody = currentCube.gameObject.GetComponent<Rigidbody2D>();
             if (cube_rigidbody != null)
             {
@@ -563,12 +586,8 @@ public class PlayerController : MonoBehaviour
             if (delta_ThrowInteraction > 0)
             {
                 FlashOver = false;
-                // Effect
-                if (FlashEffect != null)
-                {
-                    trailRenderer.emitting = true;
-                    Instantiate(FlashEffect, transform.position, Quaternion.identity);
-                }
+                Vector2 start = transform.position;
+
                 // 什么都没有击中
                 if (!currentCube.HitEnemy && !currentCube.HitInteractiveItem && !currentCube.HitGround)
                 {
@@ -623,14 +642,15 @@ public class PlayerController : MonoBehaviour
 
                     Destroy(currentCube.gameObject);
                 }
-                if (FlashEffect != null)
-                {
-                    Invoke("SetTrailRendererFalse", 0.1f);
-                    Instantiate(FlashEffect, transform.position, Quaternion.identity);
-                }
 
                 // 音效
                 playerSoundController.Play(PlayerSoundType.flash);
+                // 残影特效
+                GhostEffect ghostEffect = gameObject.GetComponent<GhostEffect>();
+                if (ghostEffect != null)
+                {
+                    ghostEffect.DrawFlashGhost(start, gameObject.transform.position);
+                }
 
                 SecJump = false;
                 return true;
@@ -648,10 +668,6 @@ public class PlayerController : MonoBehaviour
         isInvincible = false;
     }
     
-    private void SetTrailRendererFalse()
-    {
-        trailRenderer.emitting = false;
-    }
     private void GetHook()
     {
         delta_HookInteraction = PlayerGameInput.GetHookInteraction() - lastHookInteraction;
@@ -662,13 +678,13 @@ public class PlayerController : MonoBehaviour
             Rope.gameObject.SetActive(false);
         if (!OnGround && !onHook && Hook_CD_Time >= 150)
         {
-            if (NearestHook != null)
+            if (nearestHook != null)
             {
-                float Distance_nearestHook_Player = Vector2.Distance(NearestHook.transform.position, transform.position);
+                float Distance_nearestHook_Player = Vector2.Distance(nearestHook.transform.position, transform.position);
                 if (Distance_nearestHook_Player > HookCircleRadius)
-                    NearestHook = null;
+                    nearestHook = null;
             }
-            NearestHook = null;
+            nearestHook = null;
             Collider2D[] cols = Physics2D.OverlapCircleAll(transform.position, HookCircleRadius, 1 << LayerMask.NameToLayer("Hook"));
             if (cols.Length != 0)
             {
@@ -682,11 +698,11 @@ public class PlayerController : MonoBehaviour
                         continue;
                     if (nearestDistance > currentDistance)
                     {
-                        NearestHook = col.gameObject;
+                        nearestHook = col.gameObject;
                         nearestDistance = currentDistance;
                     }
                 }
-                if (NearestHook == null)
+                if (nearestHook == null)
                 {
                     return;
                 }
@@ -696,25 +712,32 @@ public class PlayerController : MonoBehaviour
                     SecJump = false;
                     velocity_beforeHook = _rigidbody.velocity;
                     justHook = true;
-                    NearestHook.GetComponent<HingeJoint2D>().connectedBody = _rigidbody;
-                    /*Vector2 destination = NearestHook.transform.position;
+                    nearestHook.GetComponent<HingeJoint2D>().connectedBody = _rigidbody;
+                    currentHook = nearestHook;
+                    playerSoundController.Play(PlayerSoundType.hook);
+                    /*Vector2 destination = nearestHook.transform.position;
 				    currentHook = (GameObject)Instantiate (hookPrefab, transform.position, Quaternion.identity);
 				    currentHook.GetComponent<Rope>().player = gameObject;
 				    currentHook.GetComponent<Rope>().destination = destination;*/
                 }
             }
         }
-        if (onHook && NearestHook != null)
+        if (onHook && nearestHook != null)
         {
             Hang_Time++;
-            // // 上下攀爬
-            Vector2 player_hook_dir = (NearestHook.transform.position - transform.position);
-            if (Input.GetKey(KeyCode.W) && transform.position.y < NearestHook.transform.position.y && player_hook_dir.magnitude > Min_RopeLength)
+            /*
+             * 
+            // 上下攀爬
+            Vector2 player_hook_dir = (nearestHook.transform.position - transform.position);
+            if (Input.GetKey(KeyCode.W) && transform.position.y < nearestHook.transform.position.y && player_hook_dir.magnitude > Min_RopeLength)
                 transform.Translate(player_hook_dir.normalized * ClimbSpeed * Time.deltaTime);
-            if (Input.GetKey(KeyCode.S) && transform.position.y < NearestHook.transform.position.y && player_hook_dir.magnitude < Max_RopeLength)
+            if (Input.GetKey(KeyCode.S) && transform.position.y < nearestHook.transform.position.y && player_hook_dir.magnitude < Max_RopeLength)
                 transform.Translate(-player_hook_dir.normalized * ClimbSpeed * Time.deltaTime);
-            // // 左右晃动
-            if (transform.position.y < NearestHook.transform.position.y)
+            *
+            */
+
+            // 左右晃动
+            if (transform.position.y < nearestHook.transform.position.y)
             {
                 Vector2 swingDir = new Vector2(MoveDir.x, 0);
                 _rigidbody.AddForce(swingDir * SwingForce * Time.deltaTime, ForceMode2D.Force);
@@ -724,29 +747,31 @@ public class PlayerController : MonoBehaviour
             if (delta_HookInteraction < 0 || OnGround || this.Flash())
             {
                 onHook = false;
-                NearestHook.GetComponent<HingeJoint2D>().connectedBody = null;
+                nearestHook.GetComponent<HingeJoint2D>().connectedBody = null;
                 // Destroy (currentHook);
                 Hang_Time = 0;
-                NearestHook = null;
+                nearestHook = null;
+                currentHook = null;
                 JustReleaseHook = true;
             }
             if (Hang_Time >= 99999)
             {
                 onHook = false;
-                NearestHook.GetComponent<HingeJoint2D>().connectedBody = null;
+                nearestHook.GetComponent<HingeJoint2D>().connectedBody = null;
                 // Destroy (currentHook);
                 Hang_Time = 0;
                 Hook_CD_Time = 0;
-                NearestHook = null;
+                nearestHook = null;
+                currentHook = null;
                 JustReleaseHook = true;
             }
         }
         // 可视化Rope
-        if (onHook && NearestHook != null)
+        if (onHook && nearestHook != null)
         {
             Rope.gameObject.SetActive(true);
             Rope.SetPosition(0, transform.position);
-            Rope.SetPosition(1, NearestHook.transform.position);
+            Rope.SetPosition(1, nearestHook.transform.position);
         }
         lastHookInteraction = PlayerGameInput.GetHookInteraction();
     }
@@ -755,12 +780,16 @@ public class PlayerController : MonoBehaviour
         if (onHook)
         {
             _rigidbody.freezeRotation = false;
+            
+            // 使用 unity 重力
+            _rigidbody.gravityScale = originGravityScale / 2;
+
             if (justHook)
             {
                 _rigidbody.velocity = velocity_beforeHook;
                 justHook = false;
             }
-            transform.up = NearestHook.transform.position - transform.position;
+            transform.up = nearestHook.transform.position - transform.position;
         }
     }
 
@@ -792,10 +821,10 @@ public class PlayerController : MonoBehaviour
         Arrow.SetActive(false);
         Rope.gameObject.SetActive(false);
 
-        if (NearestHook != null)
+        if (nearestHook != null)
         {
-            NearestHook.GetComponent<HingeJoint2D>().connectedBody = null;
-            NearestHook = null;
+            nearestHook.GetComponent<HingeJoint2D>().connectedBody = null;
+            nearestHook = null;
         }
     }
     public void SwitchGameInput()
