@@ -7,16 +7,23 @@ public class CinemachineActivatedMethod : MonoBehaviour
 {
     private CinemachineBrain cinemachineBrain;
     private bool isPause = false;
-    private void Awake() {
+    private PlayerController playerController;
+    private void Awake()
+    {
         cinemachineBrain = gameObject.GetComponent<CinemachineBrain>();
+        playerController = PlayerController.Instance;
     }
-    private void Update() {
-        if (isPause) {
-            if (cinemachineBrain.IsBlending) {
+    private void Update()
+    {
+        if (isPause)
+        {
+            if (cinemachineBrain.IsBlending)
+            {
                 Time.timeScale = 0.05f;
                 Time.fixedDeltaTime = 0.02f * Time.timeScale;
             }
-            else {
+            else
+            {
                 PlayerController.Instance.enabled = true;
                 isPause = false;
                 Time.timeScale = 1f;
@@ -24,7 +31,8 @@ public class CinemachineActivatedMethod : MonoBehaviour
             }
         }
     }
-    public void ChangeCinemachineEvent() {
+    public void ChangeCinemachineEvent()
+    {
         isPause = true;
         PlayerController.Instance.ResetPlayerControllerStatus();
         PlayerController.Instance.enabled = false;

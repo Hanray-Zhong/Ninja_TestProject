@@ -173,5 +173,5 @@ MonoBehaviour:
   InteractiveItem: {fileID: 0}
   timeScale: 0.1
   CheckGroundRadius: 0.35
-  CheckOverlapWidth: 0.5
+  CheckOverlapWidth: 0.6
   CheckOverlapHeight: 0.1
