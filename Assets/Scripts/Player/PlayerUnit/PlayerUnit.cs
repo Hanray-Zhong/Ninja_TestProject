@@ -25,7 +25,7 @@ public class PlayerUnit : MonoBehaviour
     public GameObject DeadEffect;
     public bool IsOnSafeRegion = false;
     [Header("UI")]
-    public Animation TransitionBG;
+    public Animation TransitionBGAnim;
 
     private bool isDead = false;
     private bool canCoroutine = true;
@@ -35,6 +35,7 @@ public class PlayerUnit : MonoBehaviour
     private Rigidbody2D _rigidbody;
     private PlayerController _controller;
     private Animator _animator;
+    private PlayerSoundController playerSoundController;
 
     public bool IsDead
     {
@@ -50,6 +51,7 @@ public class PlayerUnit : MonoBehaviour
         _rigidbody = GetComponent<Rigidbody2D>();
         _controller = GetComponent<PlayerController>();
         _animator = GetComponent<Animator>();
+        playerSoundController = PlayerSoundController.Instance;
     }
 
     private void Update()
@@ -72,8 +74,9 @@ public class PlayerUnit : MonoBehaviour
             // 设置死亡时的物理状态
             _rigidbody.constraints = RigidbodyConstraints2D.FreezePosition;
             _rigidbody.velocity = Vector2.zero;
-            // 关闭音效
-            PlayerSoundController.Instance.StopAll();
+            // 播放死亡音效、关闭持续性音效
+            playerSoundController.Play(PlayerSoundType.dead);
+            playerSoundController.StopAll();
             // 重置 timeScale
             Time.timeScale = 1;
             Time.fixedDeltaTime = 0.02f * Time.timeScale;
@@ -91,14 +94,14 @@ public class PlayerUnit : MonoBehaviour
         }
         // Crountine
         yield return new WaitForSeconds(0.3f);
-        if (TransitionBG != null)
+        if (TransitionBGAnim != null)
         {
-            TransitionBG.Play("TransitionFadeUp");
+            TransitionBGAnim.Play("TransitionFadeUp");
         }
         yield return new WaitForSeconds(1);
-        if (TransitionBG != null)
+        if (TransitionBGAnim != null)
         {
-            TransitionBG.Play("TransitionFadeDown");
+            TransitionBGAnim.Play("TransitionFadeDown");
         }
         // 移动到复活点
         if (ResurrectionPoint != null)

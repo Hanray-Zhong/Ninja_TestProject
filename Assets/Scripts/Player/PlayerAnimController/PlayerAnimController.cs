@@ -31,7 +31,7 @@ public class PlayerAnimController : MonoBehaviour
         else spriteRenderer.flipX = false;
     }
     private void PlayMoveAnim() {
-        if (playerController.isControlled && (Input.GetKey(KeyCode.D) || Input.GetKey(KeyCode.A))) {
+        if (playerController.isControlled && (Mathf.Abs(playerController.MoveDir.x) > 0.9f && playerController.OnGround)) {
             PlayerAnimator.SetBool("IsMoving", true);
         }
         else {
@@ -54,7 +54,7 @@ public class PlayerAnimController : MonoBehaviour
             PlayerAnimator.SetBool("OnGround", false);
             if (playerRigidbody.velocity.y > 0) {
                 PlayerAnimator.SetBool("IsFalling", false);
-                if (!animatorStateInfo.IsName("Jump")) {
+                if (!animatorStateInfo.IsName("Jump") && !animatorStateInfo.IsName("StayAir")) {
                     PlayerAnimator.Play("Jump");
                 }
             }

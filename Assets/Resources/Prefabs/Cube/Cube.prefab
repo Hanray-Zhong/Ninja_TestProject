@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 4291436029738687699}
   - component: {fileID: 66257535794499492}
   - component: {fileID: 9083676818515574118}
-  - component: {fileID: 5387627407005404731}
+  - component: {fileID: 811032752432907958}
   - component: {fileID: 4397088977199244619}
   - component: {fileID: 9131493715161231227}
   m_Layer: 10
@@ -112,7 +112,7 @@ BoxCollider2D:
   serializedVersion: 2
   m_Size: {x: 2.5, y: 2.5}
   m_EdgeRadius: 0
---- !u!58 &5387627407005404731
+--- !u!58 &811032752432907958
 CircleCollider2D:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -127,7 +127,7 @@ CircleCollider2D:
   m_UsedByComposite: 0
   m_Offset: {x: 0, y: 0}
   serializedVersion: 2
-  m_Radius: 1.25
+  m_Radius: 1.2499999
 --- !u!50 &4397088977199244619
 Rigidbody2D:
   serializedVersion: 4
@@ -163,15 +163,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   ActiveTime: 0.2
   rotateSpeed: 300
-  Player: {fileID: 0}
   HitGround: 0
-  HitGroundFlashPosOffset: 0.3
+  HitGroundFlashPosOffset: 0.4
   HitEnemy: 0
   HitBoss: 0
   target: {fileID: 0}
   HitInteractiveItem: 0
   InteractiveItem: {fileID: 0}
   timeScale: 0.1
-  CheckGroundRadius: 0.35
-  CheckOverlapWidth: 0.6
+  CheckGroundRadius: 0.37
+  CheckOverlapWidth: 0.7
   CheckOverlapHeight: 0.1

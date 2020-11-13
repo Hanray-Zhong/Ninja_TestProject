@@ -60,3 +60,6 @@ TagManager:
   - name: Electric
     uniqueID: 372433177
     locked: 0
+  - name: Strawberry
+    uniqueID: 868494339
+    locked: 0

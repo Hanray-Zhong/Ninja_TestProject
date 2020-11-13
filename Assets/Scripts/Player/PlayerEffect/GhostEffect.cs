@@ -4,8 +4,8 @@ using UnityEngine;
 
 public class GhostEffect : MonoBehaviour
 {
-    [Header("是否开启残影效果")]
-    public bool OpenGhoseEffect;
+    [Header("开启持续性残影")]
+    public bool OpenContinuousGhost;
 
     [Header("是否开启褪色消失")]
     public bool OpenFade;
@@ -20,6 +20,9 @@ public class GhostEffect : MonoBehaviour
     public float FlashGhostSpacing;
     [Header("闪现残影的持续时间")]
     public float FlashGhostDurationTime;
+
+    [Header("残影贴图列表")]
+    public List<Sprite> FlashGhsotSprite;
 
     [Header("残影颜色")]
     public Color GhostColor;
@@ -42,7 +45,7 @@ public class GhostEffect : MonoBehaviour
     {
         Fade();
 
-        if (OpenGhoseEffect == false)
+        if (!OpenContinuousGhost)
         {
             return;
         }
@@ -87,11 +90,11 @@ public class GhostEffect : MonoBehaviour
     /// </summary>
     private void Fade()
     {
-        if (OpenFade == false && ghostList.Count == 0 && flashGhostList.Count == 0)
+        if (ghostList.Count == 0 && flashGhostList.Count == 0)
         {
             return;
         }
-        // 普通残影
+        // 持续性残影
         for (int i = 0; i < ghostList.Count; i++)
         {
             SpriteRenderer ghostSR = ghostList[i].GetComponent<SpriteRenderer>();
@@ -140,6 +143,22 @@ public class GhostEffect : MonoBehaviour
             return;
         }
         int ghostNum = (int)(Vector2.Distance(start, end) / FlashGhostSpacing);
+
+        if (ghostNum == 0)
+        {
+            GameObject ghost = new GameObject();
+            flashGhostList.Add(ghost);
+            ghost.name = "ghost";
+            ghost.AddComponent<SpriteRenderer>();
+            ghost.transform.position = end;
+            ghost.transform.localScale = transform.localScale;
+            SpriteRenderer sr = ghost.GetComponent<SpriteRenderer>();
+            sr.sprite = FlashGhsotSprite[1];
+            sr.color = GhostColor;
+            sr.sortingOrder = GhostSortingOrder;
+            sr.flipX = playerController.FaceRight ? false : true;
+        }
+
         float x_offset = (end.x - start.x) / ghostNum;
         float y_offset = (end.y - start.y) / ghostNum;
 
@@ -152,9 +171,17 @@ public class GhostEffect : MonoBehaviour
             ghost.transform.position = start + new Vector2(i * x_offset, i * y_offset);
             ghost.transform.localScale = transform.localScale;
             SpriteRenderer sr = ghost.GetComponent<SpriteRenderer>();
-            sr.sprite = playerSR.sprite;
+            if (i == 0 || i == ghostNum - 1)
+            {
+                sr.sprite = FlashGhsotSprite[1];
+                sr.color = new Color(GhostColor.r, GhostColor.g, GhostColor.b, 0.5f + (float)(i * (decimal)0.5f / ghostNum));
+            }
+            else
+            {
+                sr.sprite = FlashGhsotSprite[0];
+                sr.color = new Color(1, 1, 1, 0.5f + (float)(i * (decimal)0.5f / ghostNum));
+            }
             sr.sortingOrder = GhostSortingOrder;
-            sr.color = new Color(GhostColor.r, GhostColor.g, GhostColor.b, (float)(decimal)i / ghostNum);
             sr.flipX = playerController.FaceRight ? false : true;
         }
     }

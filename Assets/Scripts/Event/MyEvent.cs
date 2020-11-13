@@ -26,9 +26,10 @@ public class MyEvent : MonoBehaviour
     private float inputBuffer = 0;
     public PlayerController playerController;
 
-    [Header("Condition-Enemy Disappear")]
+    [Header("NPC Event")]
     public EnemyGrounps[] enemyGrounps;
-    public NPCEvent[] NPCs;
+    public NPCEvent[] NPCEvents;
+    public Animation TransitionBGAnim;
 
     [Header("Dialogue")]
     public DialogueController dialogueController;
@@ -42,7 +43,7 @@ public class MyEvent : MonoBehaviour
         for (int i = 0; i < enemyGrounps[index].enemies.Length; i++) {
             if (enemyGrounps[index].enemies[i].activeSelf) return;
         }
-        NPCs[index].isMeetCondition = true;
+        NPCEvents[index].isMeetCondition = true;
     }
     public void DialogueEvent(GameObject dialogue, UnityEvent EndEvent) 
     {
@@ -51,14 +52,41 @@ public class MyEvent : MonoBehaviour
         dialogueController.gameObject.SetActive(true);
         dialogueController.SetTextsActive(dialogue, EndEvent);
     }
+    /**
     public void NpcCanBeCarried(int index) 
     {
-        NPCs[index].gameObject.GetComponent<NPCUnit>().canBeCarried = true;
+        NPCEvents[index].gameObject.GetComponent<NPCUnit>().canBeCarried = true;
     }
+    **/
+    public void NPCCanFollowPlayer(int index)
+    {
+        NPCUnit unit = NPCEvents[index].gameObject.GetComponent<NPCUnit>();
+        unit.canFollowPlayer = true;
+        unit.isFloat = false;
+        unit.floatCube.SetActive(false);
+        playerController.allowThrowCube = false;
+    }
+
     public void NpcDisappear(int index)
     {
+        NPCUnit unit = NPCEvents[index].gameObject.GetComponent<NPCUnit>();
         playerController.allowThrowCube = true;
-        playerController.carriedNPC = null;
-        NPCs[index].gameObject.SetActive(false);
+        unit.floatCube.SetActive(true);
+        // NPCEvents[index].gameObject.SetActive(false);
+        Destroy(NPCEvents[index].gameObject, 1);
+
+        if (TransitionBGAnim != null)
+        {
+            TransitionBGAppear();
+            Invoke("TransitionBGDisappear", 1);
+        }
+    }
+    private void TransitionBGAppear()
+    {
+        TransitionBGAnim.Play("TransitionFadeUp");
+    }
+    private void TransitionBGDisappear()
+    {
+        TransitionBGAnim.Play("TransitionFadeDown");
     }
 }

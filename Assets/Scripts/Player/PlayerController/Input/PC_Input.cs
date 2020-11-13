@@ -1,7 +1,9 @@
 using UnityEngine;
 
 public class PC_Input : GameInput {
-    public Vector2 inputDir;
+    private Vector2 inputDir;
+    public Vector2 lastInputDir { get; set; }
+
     private Vector2 moveDir;
     private float hl;
 	private float vt;
@@ -29,6 +31,16 @@ public class PC_Input : GameInput {
         hl = Input.GetAxisRaw("Horizontal");
         vt = Input.GetAxisRaw("Vertical");
         inputDir = new Vector2(hl, vt);
+
+        if (!playerController.onBulletTime)
+        {
+            lastInputDir = playerController.FaceRight ? new Vector2(1, 0) : new Vector2(-1, 0);
+        }
+        if (inputDir.magnitude < 1)
+        {
+            return lastInputDir;
+        }
+
         inputDir = inputDir.normalized;
         if (inputDir.x >= -0.3827f && inputDir.x < 0.3827f) {
             if (inputDir.y > 0) inputDir = new Vector2(0, 1);
@@ -52,6 +64,7 @@ public class PC_Input : GameInput {
             inputDir = new Vector2(1, 0);
         }
         else inputDir = Vector2.zero;
+        lastInputDir = inputDir;
         return inputDir;
     }
     public override float GetJumpInteraction() {

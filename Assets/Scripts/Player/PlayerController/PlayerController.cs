@@ -186,8 +186,9 @@ public class PlayerController : MonoBehaviour
         if (!isControlled)
         {
             _rigidbody.velocity = new Vector2(0, _rigidbody.velocity.y);
-            ResetPlayerControllerStatus();
             playerSoundController.StopAll();
+            if (!PausePanelController.Instance.isPause)
+                ResetPlayerControllerStatus();
             return;
         }
         // 处于允许玩家控制阶段
@@ -255,7 +256,7 @@ public class PlayerController : MonoBehaviour
                 {
                     playerVelocity = _rigidbody.velocity + new Vector2((((_rigidbody.velocity.x > 0) ? -x_basicLimitDecreaseRate : x_basicLimitDecreaseRate) + MoveDir.normalized.x * x_limitDecreaseRate) * Time.deltaTime, 0);
                 }
-                if (OnGround || Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.D))
+                if (OnGround || Mathf.Abs(PlayerGameInput.GetMoveDir().x) > 0.9f)
                 {
                     JustReleaseHook = false;
                 }
@@ -600,7 +601,8 @@ public class PlayerController : MonoBehaviour
                 {
                     gameObject.transform.position = currentCube.HitGroundFlashPos;
                     CubeCDTimer = 140;
-                    
+                    _rigidbody.velocity = Vector2.zero;
+
                     // 先让unity进行碰撞判定，然后再进行跳跃
                     // Invoke("JumpAction", 0.1f);
                     JumpAction();
@@ -620,6 +622,7 @@ public class PlayerController : MonoBehaviour
                     currentCube.target.GetComponent<EnemyUnit>().GetHurt(1);
                     gameObject.transform.position = currentCube.gameObject.transform.position;
                     CubeCDTimer = 140;
+                    _rigidbody.velocity = Vector2.zero;
                     JumpAction();
 
                     // 音效以及特效
@@ -634,6 +637,7 @@ public class PlayerController : MonoBehaviour
                     currentCube.InteractiveItem.GetComponent<InterActiveItem>().InterAction();
                     gameObject.transform.position = currentCube.gameObject.transform.position;
                     CubeCDTimer = 140;
+                    _rigidbody.velocity = Vector2.zero;
                     JumpAction();
 
                     // 音效以及特效

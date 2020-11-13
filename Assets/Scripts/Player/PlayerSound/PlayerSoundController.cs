@@ -14,7 +14,8 @@ public enum PlayerSoundType
     hook,
     stoptime,
     hit,
-
+    trampoline,
+    dead,
 }
 
 
@@ -39,7 +40,10 @@ public class PlayerSoundController : MonoBehaviour
     [Header("音效列表")]
     public AudioSource[] AudioSources;
 
-
+    /// <summary>
+    /// 播放对应的音效
+    /// </summary>
+    /// <param name="name"></param>
     public void Play(PlayerSoundType name)
     {
         switch (name)
@@ -68,9 +72,22 @@ public class PlayerSoundController : MonoBehaviour
             case PlayerSoundType.hit:
                 AudioSources[7].Play();
                 break;
+            case PlayerSoundType.trampoline:
+                AudioSources[8].Play();
+                break;
+            case PlayerSoundType.dead:
+                AudioSources[9].Play();
+                break;
+
+            default:
+                break;
         }
     }
 
+    /// <summary>
+    /// 停止播放对应音效
+    /// </summary>
+    /// <param name="name"></param>
     public void StopPlay(PlayerSoundType name)
     {
         switch (name)
@@ -99,15 +116,32 @@ public class PlayerSoundController : MonoBehaviour
             case PlayerSoundType.hit:
                 AudioSources[7].Stop();
                 break;
+            case PlayerSoundType.trampoline:
+                AudioSources[8].Stop();
+                break;
+            case PlayerSoundType.dead:
+                AudioSources[9].Stop();
+                break;
+
+            default:
+                break;
         }
     }
 
+    /// <summary>
+    /// 停止播放所有持续性音效
+    /// </summary>
     public void StopAll()
     {
         AudioSources[0].Stop();
         AudioSources[6].Stop();
     }
 
+    /// <summary>
+    /// 检测该音效是否正在播放
+    /// </summary>
+    /// <param name="name"></param>
+    /// <returns></returns>
     public bool IsPlaying(PlayerSoundType name)
     {
         switch (name)
@@ -128,6 +162,10 @@ public class PlayerSoundController : MonoBehaviour
                 return AudioSources[6].isPlaying;
             case PlayerSoundType.hit:
                 return AudioSources[7].isPlaying;
+            case PlayerSoundType.trampoline:
+                return AudioSources[8].isPlaying;
+            case PlayerSoundType.dead:
+                return AudioSources[9].isPlaying;
         }
 
         return false;
