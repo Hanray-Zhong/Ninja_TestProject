@@ -13,6 +13,8 @@ public class FloatBlock : MonoBehaviour
     [Header("贴图")]
     public Sprite sprite_Active;
     public Sprite sprite_sleep;
+    [Header("落地音效")]
+    public bool haveFallDownSound;
 
 
     private Vector3 oringinPos;
@@ -23,6 +25,7 @@ public class FloatBlock : MonoBehaviour
     private Rigidbody2D _rigidbody2D;
     private SpriteRenderer _sprite;
     private PlayerUnit playerUnit;
+    private AudioSource fallDownSound;
 
     private void Start() {
         GameObject parent = transform.parent.gameObject;
@@ -31,6 +34,7 @@ public class FloatBlock : MonoBehaviour
         _rigidbody2D = parent.GetComponent<Rigidbody2D>();
         _sprite = parent.GetComponent<SpriteRenderer>();
         playerUnit = GameObject.FindGameObjectWithTag("Player").GetComponent<PlayerUnit>();
+        fallDownSound = parent.GetComponent<AudioSource>();
     }
 
     private void Update() {
@@ -41,6 +45,8 @@ public class FloatBlock : MonoBehaviour
         }
         IsOnGround();
         if (onGround) {
+            if (!isRising && haveFallDownSound)
+                fallDownSound.Play();
             isRising = true;
         }
         if (isRising) {

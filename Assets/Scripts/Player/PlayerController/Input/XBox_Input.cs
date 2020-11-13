@@ -1,8 +1,8 @@
 using UnityEngine;
 
 public class XBox_Input : GameInput {
-    private Vector2 inputDir;
-    private Vector2 moveDir;
+    public Vector2 inputDir;
+    public Vector2 moveDir;
     private float hl;
 	private float vt;
     private float jump_interact;
@@ -19,13 +19,20 @@ public class XBox_Input : GameInput {
         inputDir = new Vector2(hl, vt);
         if (playerController.onBulletTime && inputDir == Vector2.zero)
             return moveDir;
-        moveDir = inputDir;
+        if (inputDir.x > 0)
+            moveDir = new Vector2(1, 0);
+        else if (inputDir.x < 0)
+            moveDir = new Vector2(-1, 0);
+        else
+            moveDir = Vector2.zero;
         return moveDir;
     }
     public override Vector2 GetArrowDir() {
         hl = Input.GetAxisRaw("XBox_Horizontal");
         vt = Input.GetAxisRaw("XBox_Vertical");
         inputDir = new Vector2(hl, vt);
+        inputDir = inputDir.normalized;
+        /**
         inputDir = inputDir.normalized;
         if (inputDir.x >= -0.3827f && inputDir.x < 0.3827f) {
             if (inputDir.y > 0) inputDir = new Vector2(0, 1);
@@ -49,6 +56,7 @@ public class XBox_Input : GameInput {
             inputDir = new Vector2(1, 0);
         }
         else inputDir = Vector2.zero;
+        **/
         return inputDir;
     }
     public override float GetJumpInteraction() {

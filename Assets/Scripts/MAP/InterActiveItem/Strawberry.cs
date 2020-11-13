@@ -4,21 +4,42 @@ using UnityEngine;
 
 public class Strawberry : InterActiveItem
 {
+    [Header("平滑跟随")]
     public Vector2 MoveSmoothing;
     public Vector2 Margin;
+    public float x_offset;
     public float y_offset;
+    [Header("特效")]
     public GameObject DisappearEffect;
+
+
     private bool IsFollowingPlayer;
     private GameObject target;
     private Vector2 targetPos;
-    public Vector2 originPos;
+    private Vector2 originPos;
+
+    private PlayerController playerController;
+
+    private void Awake()
+    {
+        playerController = PlayerController.Instance;
+    }
+
     private void Start() {
         originPos = new Vector2(transform.position.x, transform.position.y);
         targetPos = originPos;
     }
+
     private void Update() {
         if (IsFollowingPlayer && target != null) {
-            targetPos = target.transform.position + new Vector3(0, y_offset, 0);
+            if (playerController.FaceRight)
+            {
+                targetPos = playerController.transform.position + new Vector3(-x_offset, y_offset, 0);
+            }
+            else
+            {
+                targetPos = playerController.transform.position + new Vector3(x_offset, y_offset, 0);
+            }
             if (target.GetComponent<PlayerUnit>().IsOnSafeRegion) {
                 // effect & log
                 Instantiate(DisappearEffect, transform.position, Quaternion.identity);
@@ -29,7 +50,17 @@ public class Strawberry : InterActiveItem
                 IsFollowingPlayer = false;
                 target = null;
             }
-        } 
+
+            if (playerController.transform.position.x >= gameObject.transform.position.x)
+            {
+                gameObject.GetComponent<SpriteRenderer>().flipX = true;
+            }
+            else
+            {
+                gameObject.GetComponent<SpriteRenderer>().flipX = false;
+            }
+        }
+        
         SmoothlyFollow(targetPos, Margin, MoveSmoothing);
         
     }

@@ -26,9 +26,12 @@ public class BGMController : MonoBehaviour
     public bool SceneTransition;
     public bool IsChangeScene;
 
+    AudioSource _audio;
+
     private void Awake()
     {
         DontDestroyOnLoad(this.gameObject);
+        _audio = gameObject.GetComponent<AudioSource>();
     }
 
     private void Update()
@@ -38,10 +41,8 @@ public class BGMController : MonoBehaviour
             int SceneIndex = SceneManager.GetActiveScene().buildIndex;
             // Debug.Log("SceneIndex : " + SceneIndex);
 
-            AudioSource Audio = gameObject.GetComponent<AudioSource>();
-            
-            Audio.clip = BGMs[SceneIndex];
-            Audio.Play();
+            PlayBGM(BGMs[SceneIndex]);
+
             IsChangeScene = false;
         }
     }
@@ -49,16 +50,37 @@ public class BGMController : MonoBehaviour
     {
         if (SceneTransition)
         {
-            AudioSource Audio = gameObject.GetComponent<AudioSource>();
-            if (Audio.volume > 0)
-            {
-                Audio.volume -= 0.02f;
-            }
-            else
+            if (StopBGM())
             {
                 SceneTransition = false;
-                Audio.volume = 1;
             }
         }
+    }
+
+    /// <summary>
+    /// 停止播放BGM（渐变）
+    /// </summary>
+    /// <returns></returns>
+    public bool StopBGM()
+    {
+        if (_audio.volume > 0)
+        {
+            _audio.volume -= 0.02f;
+            return false;
+        }
+        else
+        {
+            return true;
+        }
+    }
+
+    /// <summary>
+    /// 播放对应BGM
+    /// </summary>
+    public void PlayBGM(AudioClip targetBGM)
+    {
+        _audio.clip = targetBGM;
+        _audio.volume = 1;
+        _audio.Play();
     }
 }
